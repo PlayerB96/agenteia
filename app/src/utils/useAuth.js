@@ -1,29 +1,9 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import mockUsers from '../data/mockUsers.json'
 
-// Global State (Singleton)
-const manualUser = ref(null)
-const manualToken = ref(null)
-const manualIsLoading = ref(false)
-const manualError = ref(null)
-
-// Initialize from LocalStorage once
-const token = localStorage.getItem('auth_token')
-const userFromLocalStorage = localStorage.getItem('auth_user')
-if (token && userFromLocalStorage) {
-  manualToken.value = token
-  manualUser.value = JSON.parse(userFromLocalStorage)
-}
-
 export function useAuth() {
-  const { loginWithRedirect, logout: auth0Logout, user: auth0User, isAuthenticated: auth0IsAuthenticated, isLoading: auth0IsLoading, error: auth0Error } = useAuth0()
-
-  // Combined State
-  const isAuthenticated = computed(() => auth0IsAuthenticated.value || !!manualToken.value)
-  const isLoading = computed(() => auth0IsLoading.value || manualIsLoading.value)
-  const user = computed(() => auth0User.value || manualUser.value)
-  const error = computed(() => auth0Error.value || manualError.value)
+  const { loginWithRedirect, logout, user, isAuthenticated, isLoading, error } = useAuth0()
 
   // Map Auth0 user to our internal roles based on email
   const userRole = computed(() => {
@@ -32,8 +12,8 @@ export function useAuth() {
     // 1. Try to get role from Auth0 Custom Claim
     // Namespace required by Auth0 for custom claims
     const auth0Role = user.value['https://agenteia.com/role']
-    console.log('Auth0 User:', user.value)
-    console.log('Detected Role:', auth0Role)
+    // console.log('Auth0 User:', user.value)
+    // console.log('Detected Role:', auth0Role)
     
     if (auth0Role) return auth0Role
 
@@ -49,18 +29,12 @@ export function useAuth() {
     return userRole.value === role
   }
 
-  const handleLogin = () => {
-    loginWithRedirect()
+  const handleLogin = (options) => {
+    loginWithRedirect(options)
   }
 
   const handleLogout = () => {
-    // Clear manual session if any
-    manualUser.value = null
-    manualToken.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-
-    auth0Logout({ logoutParams: { returnTo: window.location.origin } })
+    logout({ logoutParams: { returnTo: window.location.origin } })
   }
 
   return {

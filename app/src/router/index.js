@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { watch } from 'vue'
 import { authGuard } from '@auth0/auth0-vue'
 import { useAuth } from '../utils/useAuth'
 
@@ -60,15 +61,28 @@ router.beforeEach(async (to, from, next) => {
     
     const { isAuthenticated, isLoading, hasRole, login, userRole } = useAuth()
     
-    // Wait for Auth0 to load
-    // In a real app we might show a loading spinner
-    // For simplicity we'll just proceed if loaded, or rely on Auth0's guard if we used it directly
+    // Helper to wait for Auth0 validation to complete
+    const waitForAuth = () => {
+      return new Promise((resolve) => {
+        if (!isLoading.value) return resolve()
+        
+        const unwatch = watch(isLoading, (val) => {
+          if (!val) {
+            unwatch()
+            resolve()
+          }
+        })
+      })
+    }
+
+    // Wait for the auth state to be determined
+    await waitForAuth()
     
-    // Let's use the official authGuard for the authentication part
-    const authResult = await authGuard(to)
-    
-    if (!authResult) {
-      return next('/login')
+    // Now that we are sure loading is done, check auth
+    if (!isAuthenticated.value) {
+      // Pass the current path as targetState so we can return after login
+      login({ appState: { targetUrl: to.fullPath } })
+      return // Login will redirect
     }
     
     // 2. Check Role
