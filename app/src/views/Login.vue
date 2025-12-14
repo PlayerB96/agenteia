@@ -13,6 +13,8 @@ const redirectUser = () => {
       router.push("/admin");
     } else if (userRole.value === "company_admin") {
       router.push("/company");
+    } else if (userRole.value === "new_user") {
+      router.push("/onboarding");
     }
   }
 };

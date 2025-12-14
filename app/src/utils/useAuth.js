@@ -1,9 +1,29 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import mockUsers from '../data/mockUsers.json'
 
+// Global State (Singleton)
+const manualUser = ref(null)
+const manualToken = ref(null)
+const manualIsLoading = ref(false)
+const manualError = ref(null)
+
+// Initialize from LocalStorage once
+const token = localStorage.getItem('auth_token')
+const userFromLocalStorage = localStorage.getItem('auth_user')
+if (token && userFromLocalStorage) {
+  manualToken.value = token
+  manualUser.value = JSON.parse(userFromLocalStorage)
+}
+
 export function useAuth() {
-  const { loginWithRedirect, logout, user, isAuthenticated, isLoading, error } = useAuth0()
+  const { loginWithRedirect, logout: auth0Logout, user: auth0User, isAuthenticated: auth0IsAuthenticated, isLoading: auth0IsLoading, error: auth0Error } = useAuth0()
+
+  // Combined State
+  const isAuthenticated = computed(() => auth0IsAuthenticated.value || !!manualToken.value)
+  const isLoading = computed(() => auth0IsLoading.value || manualIsLoading.value)
+  const user = computed(() => auth0User.value || manualUser.value)
+  const error = computed(() => auth0Error.value || manualError.value)
 
   // Map Auth0 user to our internal roles based on email
   const userRole = computed(() => {
@@ -21,8 +41,8 @@ export function useAuth() {
     // mockUsers is an array directly, not { users: [...] }
     const internalUser = mockUsers.find(u => u.email === user.value.email)
     
-    // 3. Final Fallback: Default to company_admin for testing
-    return internalUser ? internalUser.role : 'company_admin'
+    // 3. Final Fallback: New User
+    return internalUser ? internalUser.role : 'new_user'
   })
 
   const hasRole = (role) => {
@@ -34,7 +54,13 @@ export function useAuth() {
   }
 
   const handleLogout = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } })
+    // Clear manual session if any
+    manualUser.value = null
+    manualToken.value = null
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } })
   }
 
   return {
