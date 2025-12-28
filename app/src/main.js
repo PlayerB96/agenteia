@@ -1,10 +1,38 @@
 import { createAuth0 } from '@auth0/auth0-vue'
-import { createApp } from 'vue'
+import { createApp, ref, watch } from 'vue'
 import './style.css'
 import App from './App.vue'
 import router from './router'
+import './assets/tailwind.css'
 
 const app = createApp(App)
+
+// 🌗 Tema global
+const theme = ref(localStorage.getItem('theme') || 'dark')
+
+// Aplicar tema
+const applyTheme = (value) => {
+  if (value === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}
+
+applyTheme(theme.value)
+
+// Escuchar cambios
+watch(theme, (val) => {
+  applyTheme(val)
+  localStorage.setItem('theme', val)
+})
+
+// Exponer globalmente
+app.provide('theme', theme)
+app.provide('toggleTheme', () => {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark'
+})
+
 
 app.use(router)
 

@@ -182,7 +182,18 @@ watch(() => props.company, (newCompany) => {
 }, { immediate: true })
 
 const handleSave = () => {
-  emit('save', modalData.value)
+  emit('save', {
+    id: modalData.value.id ?? null,
+    name: modalData.value.name,
+    domain: modalData.value.domain,
+    active: modalData.value.active,
+    database: {
+      host: modalData.value.database.host,
+      port: modalData.value.database.port,
+      name: modalData.value.database.name,
+      user: modalData.value.database.user
+    }
+  })
 }
 
 const updateSubcategory = (category, subcategory, field, value) => {
@@ -196,10 +207,10 @@ const updateSubcategory = (category, subcategory, field, value) => {
 
 <template>
   <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4" @click.self="emit('close')">
-    <div class="bg-slate-800 border border-slate-700 rounded-xl md:rounded-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-      <div class="p-4 md:p-6 lg:p-8 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-slate-800 z-10">
+    <div class="bg-800 border border-slate-700 rounded-xl md:rounded-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+      <div class="p-4 md:p-6 lg:p-8 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-800 z-10">
         <h2 class="text-lg md:text-xl lg:text-2xl font-bold">{{ modalData.id ? 'Editar Empresa' : 'Nueva Empresa' }}</h2>
-        <button class="text-slate-400 hover:text-white transition-colors" @click="emit('close')">
+        <button class="text-400 hover:text-white transition-colors" @click="emit('close')">
           <X class="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
@@ -213,10 +224,10 @@ const updateSubcategory = (category, subcategory, field, value) => {
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Nombre de la Empresa</label>
+              <label class="text-sm font-medium text-300">Nombre de la Empresa</label>
               <input 
                 type="text" 
-                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500" 
+                class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-500" 
                 v-model="modalData.name"
                 placeholder="Ej: Tech Solutions Inc."
               >
@@ -225,7 +236,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
               <label class="text-sm font-medium text-slate-300">Dominio</label>
               <input 
                 type="text" 
-                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500" 
+                class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500" 
                 v-model="modalData.domain"
                 placeholder="Ej: techsolutions.com"
               >
@@ -241,20 +252,20 @@ const updateSubcategory = (category, subcategory, field, value) => {
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Host</label>
-              <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500" v-model="modalData.database.host" placeholder="localhost">
+              <label class="text-sm font-medium text-300">Host</label>
+              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.host" placeholder="localhost">
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Puerto</label>
-              <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500" v-model="modalData.database.port" placeholder="3306">
+              <label class="text-sm font-medium text-300">Puerto</label>
+              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.port" placeholder="3306">
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Nombre BD</label>
-              <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500" v-model="modalData.database.name" placeholder="db_name">
+              <label class="text-sm font-medium text-300">Nombre BD</label>
+              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.name" placeholder="db_name">
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Usuario</label>
-              <input type="text" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500" v-model="modalData.database.user" placeholder="root">
+              <label class="text-sm font-medium text-300">Usuario</label>
+              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.user" placeholder="root">
             </div>
           </div>
         </div>
@@ -272,7 +283,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
           />
 
           <!-- MARKETING TABS -->
-          <div v-if="activeTab === 'marketing'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div v-if="activeTab === 'marketing'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
             <FeatureAccordion 
               title="Comunicación Automatizada"
               :enabled="modalData.featureCategories.marketing.comunicacion.enabled"
@@ -283,24 +294,24 @@ const updateSubcategory = (category, subcategory, field, value) => {
               <template #default="{ updateFeature, features }">
                 <div class="space-y-4">
                   <!-- WhatsApp -->
-                  <div class="p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                  <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-3">
                       <span class="font-medium">Campañas WhatsApp/Telegram</span>
                       <input type="checkbox" :checked="features.whatsapp?.enabled" @change="updateFeature('whatsapp', 'enabled', $event.target.checked)">
                     </div>
                     <div v-if="features.whatsapp?.enabled" class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-indigo-500/30">
-                      <input type="text" placeholder="API Key" class="bg-slate-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.apiKey" @input="updateFeature('whatsapp', 'apiKey', $event.target.value)">
-                      <input type="text" placeholder="Template ID" class="bg-slate-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.templateId" @input="updateFeature('whatsapp', 'templateId', $event.target.value)">
+                      <input type="text" placeholder="API Key" class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.apiKey" @input="updateFeature('whatsapp', 'apiKey', $event.target.value)">
+                      <input type="text" placeholder="Template ID" class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.templateId" @input="updateFeature('whatsapp', 'templateId', $event.target.value)">
                     </div>
                   </div>
                   <!-- Email -->
-                  <div class="p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                  <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-3">
                       <span class="font-medium">Email Marketing Inteligente</span>
                       <input type="checkbox" :checked="features.email?.enabled" @change="updateFeature('email', 'enabled', $event.target.checked)">
                     </div>
                     <div v-if="features.email?.enabled" class="pl-4 border-l-2 border-indigo-500/30">
-                      <select class="bg-slate-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.email.config.provider" @change="updateFeature('email', 'provider', $event.target.value)">
+                      <select class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.email.config.provider" @change="updateFeature('email', 'provider', $event.target.value)">
                         <option value="sendgrid">SendGrid</option>
                         <option value="aws">AWS SES</option>
                         <option value="mailgun">Mailgun</option>
@@ -338,7 +349,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
           </div>
 
           <!-- COMERCIAL TABS -->
-          <div v-if="activeTab === 'comercial'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div v-if="activeTab === 'comercial'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
             <FeatureAccordion 
               title="Atención al Cliente"
               :enabled="modalData.featureCategories.comercial.atencion.enabled"
@@ -348,7 +359,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
             >
               <template #default="{ updateFeature, features }">
                 <div class="space-y-3">
-                   <div class="p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                   <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-2">
                       <span class="font-medium">Chatbot Multicanal 24/7</span>
                       <input type="checkbox" :checked="features.chatbot?.enabled" @change="updateFeature('chatbot', 'enabled', $event.target.checked)">
@@ -389,7 +400,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
           </div>
 
           <!-- SISTEMAS TABS -->
-           <div v-if="activeTab === 'sistemas'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+           <div v-if="activeTab === 'sistemas'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
              <FeatureAccordion 
               title="Gestión de Inventario"
               :enabled="modalData.featureCategories.sistemas.inventario.enabled"
@@ -438,7 +449,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
            </div>
 
            <!-- E-COMMERCE TABS -->
-           <div v-if="activeTab === 'ecommerce'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+           <div v-if="activeTab === 'ecommerce'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
              <FeatureAccordion 
               title="Experiencia de Compra"
               :enabled="modalData.featureCategories.ecommerce.compra.enabled"
@@ -448,7 +459,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
             >
               <template #default="{ updateFeature, features }">
                  <div class="space-y-3">
-                   <div class="p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                   <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-2">
                       <span class="font-medium">Asistente de Compras IA</span>
                       <input type="checkbox" :checked="features.asistente?.enabled" @change="updateFeature('asistente', 'enabled', $event.target.checked)">
@@ -487,7 +498,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
            </div>
         
             <!-- ANALISIS TABS -->
-           <div v-if="activeTab === 'analisis'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+           <div v-if="activeTab === 'analisis'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
              <FeatureAccordion 
               title="Business Intelligence y Reportes"
               :enabled="modalData.featureCategories.analisis.bi.enabled"
@@ -517,9 +528,9 @@ const updateSubcategory = (category, subcategory, field, value) => {
         </div>
       </div>
 
-      <div class="p-4 md:p-6 lg:p-8 border-t border-slate-700 bg-slate-800 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 sticky bottom-0">
+      <div class="p-4 md:p-6 lg:p-8 border-t border-700 bg-800 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 sticky bottom-0">
         <button 
-          class="w-full sm:w-auto px-4 md:px-6 py-2.5 rounded-xl font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors order-2 sm:order-1"
+          class="w-full sm:w-auto px-4 md:px-6 py-2.5 rounded-xl font-medium text-300 hover:text-white hover:bg-700 transition-colors order-2 sm:order-1"
           @click="emit('close')"
         >
           Cancelar

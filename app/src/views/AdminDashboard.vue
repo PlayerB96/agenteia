@@ -1,108 +1,127 @@
-<script setup>
-import { ref, markRaw, onMounted, watch } from "vue";
-import {
-  MessageSquare,
-  Mail,
-  Smartphone,
-  Webhook,
-  Brain,
-  Menu,
-  X,
-  LogOut,
-} from "lucide-vue-next";
-import { useAuth } from "../utils/useAuth";
-import AdminSidebar from "../components/AdminSidebar.vue";
-import StatsGrid from "../components/StatsGrid.vue";
-import CompanyList from "../components/CompanyList.vue";
-import CompanyModal from "../components/CompanyModal.vue";
+<script setup>  
+  import { ref, markRaw, onMounted, watch } from "vue";
+  import {
+    MessageSquare,
+    Mail,
+    Smartphone,
+    Webhook,
+    Brain,
+    Menu,
+    X,
+    LogOut,
+  } from "lucide-vue-next";
+  import { useAuth } from "../utils/useAuth";
+  import AdminSidebar from "../components/AdminSidebar.vue";
+  import StatsGrid from "../components/StatsGrid.vue";
+  import CompanyList from "../components/CompanyList.vue";
+  import CompanyModal from "../components/CompanyModal.vue";
 
-const { user, logout } = useAuth();
-const currentView = ref("companies");
-const showModal = ref(false);
-const selectedCompany = ref(null);
-const mobileMenuOpen = ref(false);
+  import { inject } from 'vue'
 
-const stats = ref({
-  activeCompanies: 24,
-  totalAgents: 156,
-  messagesTotal: 12847,
-  uptime: 99.9,
-});
+  const theme = inject('theme')
+  const toggleTheme = inject('toggleTheme')
+  
+  const { user, logout } = useAuth();
+  const currentView = ref("companies");
+  const showModal = ref(false);
+  const selectedCompany = ref(null);
+  const mobileMenuOpen = ref(false);
 
-const companies = ref([
-  {
-    id: 1,
-    name: "Tech Solutions Inc.",
-    domain: "techsolutions.com",
-    active: true,
-    features: [
-      { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-      { name: "Email", icon: markRaw(Mail), enabled: true },
-      { name: "SMS", icon: markRaw(Smartphone), enabled: false },
-      { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
-    ],
-  },
-  {
-    id: 2,
-    name: "Global Marketing Co.",
-    domain: "globalmarketing.io",
-    active: true,
-    features: [
-      { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-      { name: "Email", icon: markRaw(Mail), enabled: true },
-      { name: "SMS", icon: markRaw(Smartphone), enabled: true },
-      { name: "AI Custom", icon: markRaw(Brain), enabled: true },
-    ],
-  },
-  {
-    id: 3,
-    name: "E-commerce Plus",
-    domain: "ecommerceplus.com",
-    active: false,
-    features: [
-      { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-      { name: "Email", icon: markRaw(Mail), enabled: false },
-      { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
-    ],
-  },
-]);
+  const stats = ref({
+    activeCompanies: 24,
+    totalAgents: 156,
+    messagesTotal: 12847,
+    uptime: 99.9,
+  });
 
-const openModal = (company = null) => {
-  selectedCompany.value = company;
-  showModal.value = true;
-};
+  const companies = ref([
+    {
+      id: 1,
+      name: "Tech Solutions Inc.",
+      domain: "techsolutions.com",
+      active: true,
+      features: [
+        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
+        { name: "Email", icon: markRaw(Mail), enabled: true },
+        { name: "SMS", icon: markRaw(Smartphone), enabled: false },
+        { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
+      ],
+    },
+    {
+      id: 2,
+      name: "Global Marketing Co.",
+      domain: "globalmarketing.io",
+      active: true,
+      features: [
+        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
+        { name: "Email", icon: markRaw(Mail), enabled: true },
+        { name: "SMS", icon: markRaw(Smartphone), enabled: true },
+        { name: "AI Custom", icon: markRaw(Brain), enabled: true },
+      ],
+    },
+    {
+      id: 3,
+      name: "E-commerce Plus",
+      domain: "ecommerceplus.com",
+      active: false,
+      features: [
+        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
+        { name: "Email", icon: markRaw(Mail), enabled: false },
+        { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
+      ],
+    },
+  ]);
 
-const closeModal = () => {
-  showModal.value = false;
-  selectedCompany.value = null;
-};
+  const openModal = (company = null) => {
+    selectedCompany.value = company;
+    showModal.value = true;
+  };
 
-const saveCompany = (companyData) => {
-  if (companyData.id) {
-    const index = companies.value.findIndex((c) => c.id === companyData.id);
-    if (index !== -1) {
-      companies.value[index] = companyData;
+  const closeModal = () => {
+    showModal.value = false;
+    selectedCompany.value = null;
+  };
+
+  const saveCompany = async (companyData) => {
+    try {
+      if (companyData.id) {
+        // UPDATE
+        const { data } = await axios.post(
+          `/worker-agent-config/company/${companyData.id}`, //MODIFICAR WORKER API
+          companyData
+        )
+
+        const index = companies.value.findIndex(c => c.id === data.id)
+        if (index !== -1) companies.value[index] = data
+
+      } else {
+        // CREATE
+        const { data } = await axios.post(
+          '/worker-agent-config/company',
+          companyData
+        )
+
+        companies.value.push(data)
+      }
+
+      closeModal()
+    } catch (error) {
+      console.error(error)
+      // toast / alert
     }
-  } else {
-    // Generate new ID
-    const newId = Math.max(...companies.value.map((c) => c.id)) + 1;
-    companyData.id = newId;
-    companies.value.push(companyData);
   }
-  closeModal();
-};
 
-const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value;
-};
+  const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+  };
 
-const handleLogout = () => {
-  logout();
-};
+  const handleLogout = () => {
+    logout();
+  };
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-slate-900 text-slate-100 font-sans">
+  <div class="flex min-h-screen font-sans bg-900 text-100">
     <!-- Mobile Menu Button -->
     <button
       @click="toggleMobileMenu"
@@ -142,6 +161,14 @@ const handleLogout = () => {
             Bienvenido, {{ user.name || user.email }}
           </p>
         </div>
+        <button
+          @click="toggleTheme"
+          class="px-4 py-2 rounded-lg transition
+                bg-slate-200 text-slate-900
+                dark:bg-slate-700 dark:text-white"
+        >
+          {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }}
+        </button>
         <button
           @click="handleLogout"
           class="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm"

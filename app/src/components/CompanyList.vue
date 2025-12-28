@@ -47,7 +47,7 @@ const getActiveFeatures = (company) => {
 </script>
 
 <template>
-  <section class="bg-slate-800 border border-slate-700 rounded-2xl p-4 md:p-6 lg:p-8">
+  <section class="bg-800 border border-slate-700 rounded-2xl p-4 md:p-6 lg:p-8">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <h2 class="text-xl md:text-2xl font-bold">Empresas Configuradas</h2>
       <button 
@@ -63,13 +63,13 @@ const getActiveFeatures = (company) => {
       <div 
         v-for="company in companies" 
         :key="company.id"
-        class="bg-slate-700/50 border border-slate-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10 group"
+        class="bg-700 border border-slate-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10 group"
         @click="emit('openModal', company)"
       >
         <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
           <div class="flex-1">
-            <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors">{{ company.name }}</h3>
-            <p class="text-slate-400 text-sm">{{ company.domain }}</p>
+            <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
+            <p class="text-200 text-sm">{{ company.domain }}</p>
           </div>
           <span 
             :class="[
@@ -89,7 +89,7 @@ const getActiveFeatures = (company) => {
               'px-2 md:px-3 py-1.5 rounded-lg text-xs md:text-sm flex items-center gap-1.5 md:gap-2 border',
               feature.enabled 
                 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' 
-                : 'bg-slate-800 border-slate-700 text-slate-500 opacity-50'
+                : 'bg-800 border-slate-700 text-500 opacity-50'
             ]"
           >
             <component :is="feature.icon" class="w-3 h-3 md:w-4 md:h-4" />

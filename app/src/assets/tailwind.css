@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+}
+
+@layer components {
+  aside {
+    @apply bg-slate-800 border-slate-700 dark:bg-slate-200 dark:border-slate-300 dark:text-black;
+  }
+
+  .text-500{
+    @apply text-slate-500 dark:text-slate-400;
+  }
+
+  .text-400{
+    @apply text-slate-400 dark:text-slate-500;
+  }
+
+  .text-300{
+    @apply text-slate-300 dark:text-slate-600;
+  }
+
+  .text-200{
+    @apply text-slate-200 dark:text-slate-700;
+  }
+
+  .bg-900{
+    @apply bg-slate-900 dark:bg-slate-100;
+  }
+
+  .bg-800{
+    @apply bg-slate-800 dark:bg-slate-200;
+  }
+
+  .text-900{
+    @apply text-slate-900 dark:text-slate-100;
+  }
+
+  .bg-200{
+    @apply bg-slate-200 dark:bg-slate-800;
+  }
+
+  .text-2xl{
+    @apply text-white dark:text-black;
+  }
+
+  .text-3xl{
+    @apply text-white dark:text-black;
+  }
+}

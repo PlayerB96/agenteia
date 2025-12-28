@@ -1,5 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
+
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -7,13 +9,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#6366f1',
-          dark: '#4f46e5',
+        surface: {
+          DEFAULT: '#f1f5f9',
+          dark: '#1e293b',
         },
-        secondary: '#8b5cf6',
+        card: {
+          DEFAULT: '#ffffff',
+          dark: '#0f172a',
+        },
+        text: {
+          DEFAULT: '#0f172a',
+          dark: '#e5e7eb',
+        },
+        border: {
+          DEFAULT: '#e5e7eb',
+          dark: '#334155',
+        },
       },
     },
   },
+
   plugins: [],
 }
