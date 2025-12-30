@@ -5,7 +5,8 @@ import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
 
 const props = defineProps({
-  company: Object
+  company: Object,
+  saving: Boolean
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -120,7 +121,6 @@ watch(() => props.company, (newCompany) => {
     const empty = getEmptyModalData()
     
     if (!data.featureCategories) {
-      console.log('Migrating legacy data for company:', data.name)
       data.featureCategories = empty.featureCategories
       
       // Ensure database structure exists
@@ -208,6 +208,21 @@ const updateSubcategory = (category, subcategory, field, value) => {
 <template>
   <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4" @click.self="emit('close')">
     <div class="bg-800 border border-slate-700 rounded-xl md:rounded-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+      <!-- 🔒 OVERLAY DE LOADING -->
+      <div
+        v-if="saving"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm
+              z-20 flex flex-col items-center justify-center gap-4"
+      >
+        <svg class="animate-spin h-10 w-10 text-indigo-400" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+        </svg>
+        <p class="text-sm text-slate-300 font-medium">
+          Guardando empresa…
+        </p>
+      </div>
       <div class="p-4 md:p-6 lg:p-8 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-800 z-10">
         <h2 class="text-lg md:text-xl lg:text-2xl font-bold">{{ modalData.id ? 'Editar Empresa' : 'Nueva Empresa' }}</h2>
         <button class="text-400 hover:text-white transition-colors" @click="emit('close')">
@@ -536,10 +551,53 @@ const updateSubcategory = (category, subcategory, field, value) => {
           Cancelar
         </button>
         <button 
-          class="w-full sm:w-auto px-4 md:px-6 py-2.5 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all order-1 sm:order-2"
+          :disabled="saving"
           @click="handleSave"
+          class="
+            w-full sm:w-auto
+            px-4 md:px-6 py-2.5
+            rounded-xl font-medium text-white
+            bg-gradient-to-r from-indigo-500 to-purple-600
+            hover:from-indigo-600 hover:to-purple-700
+            shadow-lg shadow-indigo-500/30
+            transition-all
+            order-1 sm:order-2
+            disabled:opacity-60 disabled:cursor-not-allowed
+            flex items-center justify-center gap-2
+          "
         >
-          {{ modalData.id ? 'Guardar Cambios' : 'Crear Empresa' }}
+          <!-- Spinner -->
+          <svg
+            v-if="saving"
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            />
+          </svg>
+
+          <!-- Texto -->
+          <span>
+            <template v-if="saving">
+              Guardando...
+            </template>
+            <template v-else>
+              {{ modalData.id ? 'Guardar Cambios' : 'Crear Empresa' }}
+            </template>
+          </span>
         </button>
       </div>
     </div>

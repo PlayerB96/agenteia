@@ -15,6 +15,8 @@
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
   import CompanyModal from "../components/CompanyModal.vue";
+  import { fetchCompanies, createCompany, updateCompany } from '../services/companyService'
+  import Swal from 'sweetalert2'
 
   import { inject } from 'vue'
 
@@ -23,6 +25,7 @@
   
   const { user, logout } = useAuth();
   const currentView = ref("companies");
+  const companies = ref([])
   const showModal = ref(false);
   const selectedCompany = ref(null);
   const mobileMenuOpen = ref(false);
@@ -34,43 +37,11 @@
     uptime: 99.9,
   });
 
-  const companies = ref([
-    {
-      id: 1,
-      name: "Tech Solutions Inc.",
-      domain: "techsolutions.com",
-      active: true,
-      features: [
-        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-        { name: "Email", icon: markRaw(Mail), enabled: true },
-        { name: "SMS", icon: markRaw(Smartphone), enabled: false },
-        { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
-      ],
-    },
-    {
-      id: 2,
-      name: "Global Marketing Co.",
-      domain: "globalmarketing.io",
-      active: true,
-      features: [
-        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-        { name: "Email", icon: markRaw(Mail), enabled: true },
-        { name: "SMS", icon: markRaw(Smartphone), enabled: true },
-        { name: "AI Custom", icon: markRaw(Brain), enabled: true },
-      ],
-    },
-    {
-      id: 3,
-      name: "E-commerce Plus",
-      domain: "ecommerceplus.com",
-      active: false,
-      features: [
-        { name: "WhatsApp", icon: markRaw(MessageSquare), enabled: true },
-        { name: "Email", icon: markRaw(Mail), enabled: false },
-        { name: "Webhooks", icon: markRaw(Webhook), enabled: true },
-      ],
-    },
-  ]);
+  // 🔁 Cargar listado
+  const loadCompanies = async () => {
+    companies.value = await fetchCompanies()
+  }
+  onMounted(loadCompanies)
 
   const openModal = (company = null) => {
     selectedCompany.value = company;
@@ -82,32 +53,41 @@
     selectedCompany.value = null;
   };
 
+  const saving = ref(false)
   const saveCompany = async (companyData) => {
+    if (saving.value) return
     try {
+      saving.value = true
+      let savedCompany
+
       if (companyData.id) {
-        // UPDATE
-        const { data } = await axios.post(
-          `/worker-agent-config/company/${companyData.id}`, //MODIFICAR WORKER API
-          companyData
-        )
-
-        const index = companies.value.findIndex(c => c.id === data.id)
-        if (index !== -1) companies.value[index] = data
-
+        // ✏️ UPDATE
+        savedCompany = await updateCompany(companyData.id, companyData)
       } else {
-        // CREATE
-        const { data } = await axios.post(
-          '/worker-agent-config/company',
-          companyData
-        )
-
-        companies.value.push(data)
+        // ➕ CREATE
+        savedCompany = await createCompany(companyData)
       }
+      
+      closeModal();
+      await loadCompanies()
 
-      closeModal()
+      Swal.fire({
+        icon: 'success',
+        title: 'Guardado',
+        text: 'La empresa fue guardada correctamente',
+        timer: 1500,
+        showConfirmButton: false
+      })
     } catch (error) {
-      console.error(error)
-      // toast / alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
+        timer: 1500,
+        showConfirmButton: false
+      })
+    } finally {
+      saving.value = false
     }
   }
 
@@ -186,6 +166,7 @@
     <CompanyModal
       v-if="showModal"
       :company="selectedCompany"
+      :saving="saving"
       @close="closeModal"
       @save="saveCompany"
     />

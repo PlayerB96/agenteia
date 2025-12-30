@@ -1,6 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-import { MessageSquare, Mail, Smartphone, Webhook, Brain } from 'lucide-vue-next'
+import { MessageSquare, Mail, Smartphone, Webhook, Brain } from 'lucide-vue-next';
+import { ref } from 'vue'
+
+const loading = ref(false)
+const error = ref(null)
 
 const props = defineProps({
   companies: Array
@@ -42,7 +46,7 @@ const getActiveFeatures = (company) => {
      return company.features
   }
   
-  return active
+  return active  
 }
 </script>
 
