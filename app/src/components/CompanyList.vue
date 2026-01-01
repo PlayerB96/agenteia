@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { MessageSquare, Mail, Smartphone, Webhook, Brain } from 'lucide-vue-next';
+import { MessageSquare, Mail, Smartphone, Webhook, Brain, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue'
 
 const loading = ref(false)
@@ -10,7 +10,7 @@ const props = defineProps({
   companies: Array
 })
 
-const emit = defineEmits(['openModal'])
+const emit = defineEmits(['openModal', 'delete'])
 
 const getActiveFeatures = (company) => {
   const active = []
@@ -83,9 +83,16 @@ const getActiveFeatures = (company) => {
           >
             {{ company.active ? 'Activo' : 'Inactivo' }}
           </span>
+            <!-- click.stop para detener la propagación de abrir modal -->
+            <button
+              @click.stop="$emit('delete', company)"
+              class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+            >
+              <Trash2 />
+            </button>
         </div>
         
-        <div class="flex gap-2 md:gap-3 flex-wrap">
+        <!-- <div class="flex gap-2 md:gap-3 flex-wrap">
           <span 
             v-for="feature in getActiveFeatures(company)" 
             :key="feature.name"
@@ -99,7 +106,7 @@ const getActiveFeatures = (company) => {
             <component :is="feature.icon" class="w-3 h-3 md:w-4 md:h-4" />
             <span class="hidden sm:inline">{{ feature.name }}</span>
           </span>
-        </div>
+        </div> -->
       </div>
     </div>
   </section>

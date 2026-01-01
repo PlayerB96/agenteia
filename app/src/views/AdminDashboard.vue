@@ -15,7 +15,7 @@
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
   import CompanyModal from "../components/CompanyModal.vue";
-  import { fetchCompanies, createCompany, updateCompany } from '../services/companyService'
+  import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '../services/companyService'
   import Swal from 'sweetalert2'
 
   import { inject } from 'vue'
@@ -91,6 +91,28 @@
     }
   }
 
+  const removeCompany = async (company) => {
+    const confirm = await Swal.fire({
+      title: '¿Eliminar empresa?',
+      text: `Se eliminará "${company.name}"`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    })
+
+    if (!confirm.isConfirmed) return
+
+    try {
+      await deleteCompany(company.id)
+      await loadCompanies() // 🔄 refresca listado
+      Swal.fire('Eliminado', 'Empresa eliminada correctamente', 'success')
+    } catch (e) {
+      console.error(e)
+      Swal.fire('Error', 'No se pudo eliminar', 'error')
+    }
+  }
+
   const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value;
   };
@@ -160,7 +182,7 @@
 
       <StatsGrid :stats="stats" />
 
-      <CompanyList :companies="companies" @open-modal="openModal" />
+      <CompanyList :companies="companies" @open-modal="openModal" @delete="removeCompany" />
     </main>
 
     <CompanyModal

@@ -5,7 +5,8 @@ const API = '/api-worker/configs'
 // CREATE
 export const createCompany = async (company) => {
   const { data } = await axios.post(API, {
-    data: company
+    data: company,
+    active: company.active
   })
 
   return normalizeCompany(data)
@@ -14,7 +15,8 @@ export const createCompany = async (company) => {
 // UPDATE
 export const updateCompany = async (id, company) => {
   const { data } = await axios.put(`${API}?id=${id}`, {
-    data: company
+    data: company,
+    active: company.active
   })
 
   return normalizeCompany(data)
@@ -56,4 +58,8 @@ export const fetchCompanies = async () => {
       raw: parsed
     }
   })
+}
+
+export const deleteCompany = async (id) => {
+  return axios.delete(`${API}?id=${id}`)
 }
