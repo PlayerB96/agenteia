@@ -10,6 +10,14 @@ const props = defineProps({
   companies: Array
 })
 
+const activeCompanies = computed(() =>
+  props.companies.filter(c => Number(c.active) === 1)
+)
+
+const inactiveCompanies = computed(() =>
+  props.companies.filter(c => Number(c.active) === 0)
+)
+
 const emit = defineEmits(['openModal', 'delete', 'toggle-active'])
 
 const getActiveFeatures = (company) => {
@@ -64,62 +72,99 @@ const getActiveFeatures = (company) => {
     </div>
 
     <div class="space-y-4">
-      <div 
-        v-for="company in companies" 
-        :key="company.id"
-        class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10 group"
-        @click="emit('openModal', company)"
-      >
-        <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
-          <div class="flex-1">
-            <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
-            <p class="text-200 text-sm">{{ company.domain }}</p>
+      <h3 class="text-sm uppercase text-emerald-400 font-bold tracking-wider mb-2">
+        Empresas Activas ({{ activeCompanies.length }})
+      </h3>
+
+      <div class="space-y-4">
+          <div
+            v-for="company in activeCompanies"
+            :key="company.id"
+            class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
+            @click="emit('openModal', company)"
+          >
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+              <div class="flex-1">
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
+                <p class="text-200 text-sm">{{ company.domain }}</p>
+              </div>
+              <span 
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide whitespace-nowrap',
+                  //company.active == 1 is true else false
+                  company.active == 1 ? 'bg-emerald-500/10 text-emerald-400-ag' : 'bg-red-500/10 text-red-400'
+                ]"
+              >
+                {{ company.active == 1 ? 'Activo' : 'Inactivo' }}
+              </span>
+              <!-- SWITCH -->
+              <button
+                @click.stop="$emit('toggle-active', company)"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
+                title="Activar / Desactivar"
+              >
+                <span
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  :class="company.active ? 'translate-x-6' : 'translate-x-1'"
+                />
+              </button>
+              <!-- click.stop para detener la propagación de abrir modal -->
+              <button
+                @click.stop="$emit('delete', company)"
+                class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              >
+                <Trash2 />
+              </button>
+            </div>
           </div>
-          <span 
-            :class="[
-              'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide whitespace-nowrap',
-              //company.active == 1 is true else false
-              company.active == 1 ? 'bg-emerald-500/10 text-emerald-400-ag' : 'bg-red-500/10 text-red-400'
-            ]"
-          >
-            {{ company.active == 1 ? 'Activo' : 'Inactivo' }}
-          </span>
-          <!-- SWITCH -->
-          <button
-            @click.stop="$emit('toggle-active', company)"
-            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-            :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
-            title="Activar / Desactivar"
-          >
-            <span
-              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-              :class="company.active ? 'translate-x-6' : 'translate-x-1'"
-            />
-          </button>
-          <!-- click.stop para detener la propagación de abrir modal -->
-          <button
-            @click.stop="$emit('delete', company)"
-            class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
-          >
-            <Trash2 />
-          </button>
+      </div>
+      <h3 class="text-sm uppercase text-red-400 font-bold tracking-wider mt-8 mb-2">
+        Empresas Inactivas ({{ inactiveCompanies.length }})
+      </h3>
+
+      <div class="space-y-4">
+        <div
+          v-for="company in inactiveCompanies"
+          :key="company.id"
+          class="bg-700 border border-700 hover:border-red-500/40 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
+          @click="emit('openModal', company)"
+        >
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+              <div class="flex-1">
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
+                <p class="text-200 text-sm">{{ company.domain }}</p>
+              </div>
+              <span 
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide whitespace-nowrap',
+                  //company.active == 1 is true else false
+                  company.active == 1 ? 'bg-emerald-500/10 text-emerald-400-ag' : 'bg-red-500/10 text-red-400'
+                ]"
+              >
+                {{ company.active == 1 ? 'Activo' : 'Inactivo' }}
+              </span>
+              <!-- SWITCH -->
+              <button
+                @click.stop="$emit('toggle-active', company)"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
+                title="Activar / Desactivar"
+              >
+                <span
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  :class="company.active ? 'translate-x-6' : 'translate-x-1'"
+                />
+              </button>
+              <!-- click.stop para detener la propagación de abrir modal -->
+              <button
+                @click.stop="$emit('delete', company)"
+                class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              >
+                <Trash2 />
+              </button>
+            </div>
         </div>
-        
-        <!-- <div class="flex gap-2 md:gap-3 flex-wrap">
-          <span 
-            v-for="feature in getActiveFeatures(company)" 
-            :key="feature.name"
-            :class="[
-              'px-2 md:px-3 py-1.5 rounded-lg text-xs md:text-sm flex items-center gap-1.5 md:gap-2 border',
-              feature.enabled 
-                ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' 
-                : 'bg-800 border-slate-700 text-500 opacity-50'
-            ]"
-          >
-            <component :is="feature.icon" class="w-3 h-3 md:w-4 md:h-4" />
-            <span class="hidden sm:inline">{{ feature.name }}</span>
-          </span>
-        </div> -->
       </div>
     </div>
   </section>
