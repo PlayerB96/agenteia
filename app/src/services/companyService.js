@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API = '/api-worker/configs'
+const API = '/api-worker/'
 
 // CREATE
 export const createCompany = async (company) => {
@@ -14,7 +14,7 @@ export const createCompany = async (company) => {
 
 // UPDATE
 export const updateCompany = async (id, company) => {
-  const { data } = await axios.put(`${API}?id=${id}`, {
+  const { data } = await axios.put(`configs/${API}?id=${id}`, {
     data: company,
     active: company.active
   })
@@ -36,7 +36,7 @@ const normalizeCompany = (item) => {
 }
 
 export const fetchCompanies = async () => {
-  const res = await axios.get(API)
+  const res = await axios.get(API + 'configs')
 
   if (res.status !== 200) return []
 
@@ -51,15 +51,38 @@ export const fetchCompanies = async () => {
       // datos reales de empresa
       name: parsed.name,
       domain: parsed.domain,
-      active: parsed.active,
+      active: item.active ? 1 : 0,
       database: parsed.database,
 
-      // por si luego lo necesitas completo
       raw: parsed
     }
   })
 }
 
 export const deleteCompany = async (id) => {
-  return axios.delete(`${API}?id=${id}`)
+  return axios.delete(`/configs/${API}?id=${id}`)
+}
+//ACTIVE INACTIVE
+// UPDATE
+export const toggleCompany = async (id, company) => {
+  const { data } = await axios.put(`/configs/${API}?id=${id}&active=${company.active}`, {
+    data: company,
+  })
+
+  return normalizeCompany(data)
+}
+
+//DASHBOARD
+export const fetchDashboard = async () => {
+  const res = await axios.get(`${API}/dashboard`)
+  
+  if (res.status !== 200) return []
+  console.log(res.data)
+
+  return {
+    activeCompanies: res.data.companias_activas,
+    totalAgents: res.data.canales_conectados,
+    messagesTotal: res.data.ultima_interaccion,
+    uptime: res.data.conversaciones_atendidas
+  }
 }

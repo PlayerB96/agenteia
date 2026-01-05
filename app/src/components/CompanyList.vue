@@ -10,7 +10,7 @@ const props = defineProps({
   companies: Array
 })
 
-const emit = defineEmits(['openModal', 'delete'])
+const emit = defineEmits(['openModal', 'delete', 'toggle-active'])
 
 const getActiveFeatures = (company) => {
   const active = []
@@ -51,14 +51,14 @@ const getActiveFeatures = (company) => {
 </script>
 
 <template>
-  <section class="bg-800 border border-slate-700 rounded-2xl p-4 md:p-6 lg:p-8">
+  <section class="bg-800 border border-700 rounded-2xl p-4 md:p-6 lg:p-8">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <h2 class="text-xl md:text-2xl font-bold">Empresas Configuradas</h2>
       <button 
         class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5"
         @click="emit('openModal', null)"
       >
-        <span>➕</span>
+        <span class="text-lg">+</span>
         Nueva Empresa
       </button>
     </div>
@@ -67,7 +67,7 @@ const getActiveFeatures = (company) => {
       <div 
         v-for="company in companies" 
         :key="company.id"
-        class="bg-700 border border-slate-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10 group"
+        class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/10 group"
         @click="emit('openModal', company)"
       >
         <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
@@ -78,18 +78,31 @@ const getActiveFeatures = (company) => {
           <span 
             :class="[
               'px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide whitespace-nowrap',
-              company.active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+              //company.active == 1 is true else false
+              company.active == 1 ? 'bg-emerald-500/10 text-emerald-400-ag' : 'bg-red-500/10 text-red-400'
             ]"
           >
-            {{ company.active ? 'Activo' : 'Inactivo' }}
+            {{ company.active == 1 ? 'Activo' : 'Inactivo' }}
           </span>
-            <!-- click.stop para detener la propagación de abrir modal -->
-            <button
-              @click.stop="$emit('delete', company)"
-              class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
-            >
-              <Trash2 />
-            </button>
+          <!-- SWITCH -->
+          <button
+            @click.stop="$emit('toggle-active', company)"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+            :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
+            title="Activar / Desactivar"
+          >
+            <span
+              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+              :class="company.active ? 'translate-x-6' : 'translate-x-1'"
+            />
+          </button>
+          <!-- click.stop para detener la propagación de abrir modal -->
+          <button
+            @click.stop="$emit('delete', company)"
+            class="px-3 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+          >
+            <Trash2 />
+          </button>
         </div>
         
         <!-- <div class="flex gap-2 md:gap-3 flex-wrap">

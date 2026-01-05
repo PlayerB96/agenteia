@@ -15,7 +15,7 @@
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
   import CompanyModal from "../components/CompanyModal.vue";
-  import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '../services/companyService'
+  import { fetchCompanies, createCompany, updateCompany, deleteCompany, toggleCompany, fetchDashboard } from '../services/companyService'
   import Swal from 'sweetalert2'
 
   import { inject } from 'vue'
@@ -29,19 +29,23 @@
   const showModal = ref(false);
   const selectedCompany = ref(null);
   const mobileMenuOpen = ref(false);
+  const stats = ref({})
 
-  const stats = ref({
-    activeCompanies: 24,
-    totalAgents: 156,
-    messagesTotal: 12847,
-    uptime: 99.9,
-  });
+
+  const loadStats = async () => {
+    const data = await fetchDashboard()
+    if (data) stats.value = data
+  }
 
   // 🔁 Cargar listado
   const loadCompanies = async () => {
     companies.value = await fetchCompanies()
   }
-  onMounted(loadCompanies)
+  
+  onMounted(() => {
+    loadCompanies()
+    loadStats()
+  })
 
   const openModal = (company = null) => {
     selectedCompany.value = company;
@@ -117,6 +121,16 @@
     mobileMenuOpen.value = !mobileMenuOpen.value;
   };
 
+  const toggleCompanyActive = async (company) => {
+    try {
+      company.active = company.active ? 0 : 1
+      await toggleCompany(company.id, company)
+      await loadCompanies()
+    } catch (error) {
+      console.error('Error cambiando estado:', error)
+    }
+  }
+
   const handleLogout = () => {
     logout();
   };
@@ -127,7 +141,7 @@
     <!-- Mobile Menu Button -->
     <button
       @click="toggleMobileMenu"
-      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-800 border border-slate-700 rounded-lg text-white hover:bg-slate-700 transition-colors"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-800 border border-700 rounded-lg text-white hover:bg-slate-700 transition-colors"
     >
       <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
       <X v-else class="w-6 h-6" />
@@ -182,7 +196,12 @@
 
       <StatsGrid :stats="stats" />
 
-      <CompanyList :companies="companies" @open-modal="openModal" @delete="removeCompany" />
+      <CompanyList 
+      :companies="companies" 
+      @open-modal="openModal" 
+      @delete="removeCompany"
+      @toggle-active="toggleCompanyActive" 
+      />
     </main>
 
     <CompanyModal

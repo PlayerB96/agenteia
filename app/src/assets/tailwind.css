@@ -7,7 +7,11 @@
 
 @layer components {
   aside {
-    @apply bg-slate-800 border-slate-700 dark:bg-slate-200 dark:border-slate-300 dark:text-black;
+    @apply bg-slate-800 dark:bg-slate-200 dark:text-black;
+  }
+
+  .border-700{
+    @apply border-slate-700 dark:border-slate-300;
   }
 
   .text-500{
@@ -48,5 +52,13 @@
 
   .text-3xl{
     @apply text-white dark:text-black;
+  }
+
+  .text-emerald-400-ag{
+    @apply text-emerald-400 dark:text-emerald-600;
+  }
+
+  .bg-emerald-400-ag{
+    @apply bg-emerald-400 dark:bg-emerald-600;
   }
 }

@@ -16,7 +16,7 @@ defineProps({
         </div>
       </div>
       <div class="text-3xl font-bold mb-1">{{ stats.activeCompanies }}</div>
-      <div class="text-sm text-emerald-400 flex items-center gap-1">
+      <div class="text-sm text-emerald-400-ag flex items-center gap-1">
         <span>↑</span> 12% este mes
       </div>
     </div>
@@ -29,7 +29,7 @@ defineProps({
         </div>
       </div>
       <div class="text-3xl font-bold mb-1">{{ stats.totalAgents }}</div>
-      <div class="text-sm text-emerald-400 flex items-center gap-1">
+      <div class="text-sm text-emerald-400-ag flex items-center gap-1">
         <span>↑</span> 8% este mes
       </div>
     </div>
@@ -42,7 +42,7 @@ defineProps({
         </div>
       </div>
       <div class="text-3xl font-bold mb-1">{{ stats.messagesTotal }}</div>
-      <div class="text-sm text-emerald-400 flex items-center gap-1">
+      <div class="text-sm text-emerald-400-ag flex items-center gap-1">
         <span>↑</span> 24% vs ayer
       </div>
     </div>
@@ -55,7 +55,7 @@ defineProps({
         </div>
       </div>
       <div class="text-3xl font-bold mb-1">{{ stats.uptime }}%</div>
-      <div class="text-sm text-emerald-400 font-medium">Óptimo</div>
+      <div class="text-sm text-emerald-400-ag font-medium">Óptimo</div>
     </div>
   </div>
 </template>

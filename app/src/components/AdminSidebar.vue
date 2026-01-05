@@ -19,7 +19,7 @@ const navItems = ref([
 
 <template>
   <aside :class="[
-    'fixed lg:sticky top-0 left-0 w-72 bg-800 border-r border-slate-700 py-8 flex flex-col h-screen z-40 transition-transform duration-300',
+    'fixed lg:sticky top-0 left-0 w-72 bg-800 border-r border-700 py-8 flex flex-col h-screen z-40 transition-transform duration-300',
     mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   ]">
 
