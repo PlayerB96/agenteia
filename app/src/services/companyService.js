@@ -4,7 +4,7 @@ const API = '/api-worker/'
 
 // CREATE
 export const createCompany = async (company) => {
-  const { data } = await axios.post(API, {
+  const { data } = await axios.post(API + 'configs', {
     data: company,
     active: company.active
   })
@@ -14,7 +14,7 @@ export const createCompany = async (company) => {
 
 // UPDATE
 export const updateCompany = async (id, company) => {
-  const { data } = await axios.put(`configs/${API}?id=${id}`, {
+  const { data } = await axios.put(`${API}configs?id=${id}`, {
     data: company,
     active: company.active
   })
