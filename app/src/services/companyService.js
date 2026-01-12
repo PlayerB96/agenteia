@@ -60,12 +60,12 @@ export const fetchCompanies = async () => {
 }
 
 export const deleteCompany = async (id) => {
-  return axios.delete(`/configs/${API}?id=${id}`)
+  return axios.delete(`${API}configs?id=${id}`)
 }
 //ACTIVE INACTIVE
 // UPDATE
 export const toggleCompany = async (id, company) => {
-  const { data } = await axios.put(`/configs/${API}?id=${id}&active=${company.active}`, {
+  const { data } = await axios.put(`${API}configs?id=${id}&active=${company.active}`, {
     data: company,
   })
 
