@@ -16,7 +16,7 @@
   import AdminSidebar from "../components/AdminSidebar.vue";
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
-  import CompanyModal from "../components/CompanyModal.vue";
+  import CompanyModal from "../components/CompanyForm.vue";
   import { fetchCompanies, createCompany, updateCompany, deleteCompany, toggleCompany, fetchDashboard } from '../services/companyService'
   import Swal from 'sweetalert2'
 

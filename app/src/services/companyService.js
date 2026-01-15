@@ -77,12 +77,23 @@ export const fetchDashboard = async () => {
   const res = await axios.get(`${API}/dashboard`)
   
   if (res.status !== 200) return []
-  console.log(res.data)
 
   return {
     activeCompanies: res.data.companias_activas,
     totalAgents: res.data.canales_conectados,
     messagesTotal: res.data.ultima_interaccion,
     uptime: res.data.conversaciones_atendidas
+  }
+}
+
+export const fetchCompanyById = async (id) => {
+  const res = await axios.get(`/api-worker/configs?id=${id}`)
+  if(res.status !== 200) return []
+  const parsed = JSON.parse(res.data.result.data)
+
+  return {
+    id: res.data.result.id,
+    ...parsed,
+    active: res.data.active
   }
 }

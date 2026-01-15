@@ -1,15 +1,14 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { ClipboardList, Database, Settings, X } from 'lucide-vue-next'
+import { ClipboardList, Database, Settings, X, Users, Zap, TrendingUp, MessageCircle, Activity, Brain } from 'lucide-vue-next'
 import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
+import StatsAgent from './StatsAgent.vue'
 
 const props = defineProps({
   company: Object,
   saving: Boolean
 })
-
-const emit = defineEmits(['close', 'save'])
 
 const activeTab = ref('marketing')
 
@@ -23,6 +22,9 @@ const getEmptyModalData = () => ({
     port: '3306',
     name: '',
     user: ''
+  },
+  options: {
+    max_tokens: '',
   },
   featureCategories: {
     marketing: {
@@ -112,11 +114,14 @@ const getEmptyModalData = () => ({
 
 const modalData = ref(getEmptyModalData())
 
+const emit = defineEmits(['save', 'cancel'])
+const form = ref({ ...props.company })
+
 watch(() => props.company, (newCompany) => {
   if (newCompany) {
     // Deep copy to avoid reference issues
     const data = JSON.parse(JSON.stringify(newCompany))
-    
+
     // Ensure all structure exists even if old data format
     const empty = getEmptyModalData()
     
@@ -181,21 +186,6 @@ watch(() => props.company, (newCompany) => {
   }
 }, { immediate: true })
 
-const handleSave = () => {
-  emit('save', {
-    id: modalData.value.id ?? null,
-    name: modalData.value.name,
-    domain: modalData.value.domain,
-    active: modalData.value.active,
-    database: {
-      host: modalData.value.database.host,
-      port: modalData.value.database.port,
-      name: modalData.value.database.name,
-      user: modalData.value.database.user
-    }
-  })
-}
-
 const updateSubcategory = (category, subcategory, field, value) => {
   if (field === 'enabled') {
     modalData.value.featureCategories[category][subcategory].enabled = value
@@ -203,31 +193,65 @@ const updateSubcategory = (category, subcategory, field, value) => {
     modalData.value.featureCategories[category][subcategory].features = value
   }
 }
+const handleSave = () => {
+  emit('save', {
+    id: modalData.value.id ?? null,
+    name: modalData.value.name,
+    domain: modalData.value.domain,
+    active: true,
+    database: {
+      host: modalData.value.database.host,
+      port: modalData.value.database.port,
+      name: modalData.value.database.name,
+      user: modalData.value.database.user
+    },
+    options: {
+      max_tokens: modalData.value.options.max_tokens,
+    }
+  })
+}
+
+const handleCancel = () => {
+  emit('cancel')
+}
+
+const getStatsAgent = () => ([
+  { label: 'Agentes Activos', value: 8, icon: Activity, color: "from-green-500 to-teal-500"},
+  { label: 'Mensajes totales', value: 54, icon: MessageCircle, color: "from-purple-500 to-fuchsia-500"},
+  { label: 'Éxito promedio', value: 32, icon: TrendingUp, color: "from-orange-500 to-amber-500"},
+  { label: 'Canales Activos', value: 12, icon: Zap, color: "from-blue-500 to-sky-500"},
+])
+const statsAgent = ref(getStatsAgent())
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4" @click.self="emit('close')">
-    <div class="bg-800 border border-slate-700 rounded-xl md:rounded-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-      <!-- 🔒 OVERLAY DE LOADING -->
+  <div class="relative bg-800 border border-slate-700 rounded-xl p-6">
+    <div class="flex flex-col h-full">
+      <!-- OVERLAY DE LOADING -->
       <div
         v-if="saving"
         class="absolute inset-0 bg-black/60 backdrop-blur-sm
-              z-20 flex flex-col items-center justify-center gap-4"
+              z-50 flex flex-col items-center justify-center gap-4"
       >
         <svg class="animate-spin h-10 w-10 text-indigo-400" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          />
         </svg>
+
         <p class="text-sm text-slate-300 font-medium">
           Guardando empresa…
         </p>
-      </div>
-      <div class="p-4 md:p-6 lg:p-8 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-800 z-10">
-        <h2 class="text-lg md:text-xl lg:text-2xl font-bold">{{ modalData.id ? 'Editar Empresa' : 'Nueva Empresa' }}</h2>
-        <button class="text-400 hover:text-white transition-colors" @click="emit('close')">
-          <X class="w-5 h-5 md:w-6 md:h-6" />
-        </button>
       </div>
 
       <div class="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
@@ -242,16 +266,16 @@ const updateSubcategory = (category, subcategory, field, value) => {
               <label class="text-sm font-medium text-300">Nombre de la Empresa</label>
               <input 
                 type="text" 
-                class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-500" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-200" 
                 v-model="modalData.name"
                 placeholder="Ej: Tech Solutions Inc."
               >
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-300">Dominio</label>
+              <label class="text-sm font-medium text-300">Dominio</label>
               <input 
                 type="text" 
-                class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-200" 
                 v-model="modalData.domain"
                 placeholder="Ej: techsolutions.com"
               >
@@ -268,23 +292,43 @@ const updateSubcategory = (category, subcategory, field, value) => {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div class="space-y-2">
               <label class="text-sm font-medium text-300">Host</label>
-              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.host" placeholder="localhost">
+              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.host" placeholder="localhost">
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-300">Puerto</label>
-              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.port" placeholder="3306">
+              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.port" placeholder="3306">
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-300">Nombre BD</label>
-              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.name" placeholder="db_name">
+              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.name" placeholder="db_name">
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-300">Usuario</label>
-              <input type="text" class="w-full bg-700 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500" v-model="modalData.database.user" placeholder="root">
+              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.user" placeholder="root">
             </div>
           </div>
         </div>
 
+        <!-- Funcionalidades por Categoría -->
+        <div class="space-y-3 md:space-y-4">
+          <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
+            <Users class="w-4 h-4 md:w-5 md:h-5" />
+            Vista General de Agentes
+          </h3>
+          <StatsAgent :stats-agent="statsAgent" />
+        </div>
+        
+        <!-- Funcionalidades por Categoría -->
+        <div class="space-y-3 md:space-y-4">
+          <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
+            <Brain class="w-4 h-4 md:w-5 md:h-5" />
+            Opciones Avanzadas
+          </h3>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-300">Max Tokens</label>
+            <input type="number" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.options.max_tokens" placeholder="maximotokens">
+          </div>
+        </div>
         <!-- Funcionalidades por Categoría -->
         <div class="space-y-3 md:space-y-4">
           <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
@@ -298,7 +342,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
           />
 
           <!-- MARKETING TABS -->
-          <div v-if="activeTab === 'marketing'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
+          <div v-if="activeTab === 'marketing'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-200">
             <FeatureAccordion 
               title="Comunicación Automatizada"
               :enabled="modalData.featureCategories.marketing.comunicacion.enabled"
@@ -309,24 +353,24 @@ const updateSubcategory = (category, subcategory, field, value) => {
               <template #default="{ updateFeature, features }">
                 <div class="space-y-4">
                   <!-- WhatsApp -->
-                  <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
+                  <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-3">
-                      <span class="font-medium">Campañas WhatsApp/Telegram</span>
+                      <span class="font-medium text-100">Campañas WhatsApp/Telegram</span>
                       <input type="checkbox" :checked="features.whatsapp?.enabled" @change="updateFeature('whatsapp', 'enabled', $event.target.checked)">
                     </div>
                     <div v-if="features.whatsapp?.enabled" class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l-2 border-indigo-500/30">
-                      <input type="text" placeholder="API Key" class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.apiKey" @input="updateFeature('whatsapp', 'apiKey', $event.target.value)">
-                      <input type="text" placeholder="Template ID" class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.templateId" @input="updateFeature('whatsapp', 'templateId', $event.target.value)">
+                      <input type="text" placeholder="API Key" class="bg-800 border-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.apiKey" @input="updateFeature('whatsapp', 'apiKey', $event.target.value)">
+                      <input type="text" placeholder="Template ID" class="bg-800 border-600 rounded px-3 py-1.5 text-sm w-full" :value="features.whatsapp.config.templateId" @input="updateFeature('whatsapp', 'templateId', $event.target.value)">
                     </div>
                   </div>
                   <!-- Email -->
-                  <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
+                  <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-3">
-                      <span class="font-medium">Email Marketing Inteligente</span>
+                      <span class="font-medium text-100">Email Marketing Inteligente</span>
                       <input type="checkbox" :checked="features.email?.enabled" @change="updateFeature('email', 'enabled', $event.target.checked)">
                     </div>
                     <div v-if="features.email?.enabled" class="pl-4 border-l-2 border-indigo-500/30">
-                      <select class="bg-800 border-slate-600 rounded px-3 py-1.5 text-sm w-full" :value="features.email.config.provider" @change="updateFeature('email', 'provider', $event.target.value)">
+                      <select class="bg-800 border-600 rounded px-3 py-1.5 text-sm w-full" :value="features.email.config.provider" @change="updateFeature('email', 'provider', $event.target.value)">
                         <option value="sendgrid">SendGrid</option>
                         <option value="aws">AWS SES</option>
                         <option value="mailgun">Mailgun</option>
@@ -346,16 +390,16 @@ const updateSubcategory = (category, subcategory, field, value) => {
             >
                <template #default="{ updateFeature, features }">
                 <div class="space-y-4">
-                  <div class="flex items-center justify-between p-2">
-                    <span>Recomendación de Productos</span>
+                  <div class="p-3 bg-700 rounded-lg border border-slate-600/50 flex items-center justify-between mb-3">
+                    <span class="font-medium text-100">Recomendación de Productos</span>
                     <input type="checkbox" :checked="features.recomendaciones?.enabled" @change="updateFeature('recomendaciones', 'enabled', $event.target.checked)">
                   </div>
-                  <div class="flex items-center justify-between p-2">
-                    <span>Segmentación de Clientes</span>
+                  <div class="p-3 bg-700 rounded-lg border border-slate-600/50 flex items-center justify-between mb-3">
+                    <span class="font-medium text-100">Segmentación de Clientes</span>
                     <input type="checkbox" :checked="features.segmentacion?.enabled" @change="updateFeature('segmentacion', 'enabled', $event.target.checked)">
                   </div>
-                  <div class="flex items-center justify-between p-2">
-                    <span>Optimización de Precios</span>
+                  <div class="p-3 bg-700 rounded-lg border border-slate-600/50 flex items-center justify-between mb-3">
+                    <span class="font-medium text-100">Optimización de Precios</span>
                     <input type="checkbox" :checked="features.pricing?.enabled" @change="updateFeature('pricing', 'enabled', $event.target.checked)">
                   </div>
                 </div>
@@ -372,7 +416,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('comercial', 'atencion', 'enabled', $event)"
               @update:features="updateSubcategory('comercial', 'atencion', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                 <div class="space-y-3">
                    <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-2">
@@ -385,7 +429,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <input type="checkbox" :checked="features.reclamos?.enabled" @change="updateFeature('reclamos', 'enabled', $event.target.checked)">
                   </div>
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
 
              <FeatureAccordion 
@@ -423,7 +467,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('sistemas', 'inventario', 'enabled', $event)"
               @update:features="updateSubcategory('sistemas', 'inventario', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                  <div class="space-y-2">
                    <div class="flex items-center justify-between p-2">
                     <span>Predicción de Demanda</span>
@@ -438,7 +482,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <input type="checkbox" :checked="features.compras?.enabled" @change="updateFeature('compras', 'enabled', $event.target.checked)">
                   </div>
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
 
              <FeatureAccordion 
@@ -448,7 +492,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('sistemas', 'logistica', 'enabled', $event)"
               @update:features="updateSubcategory('sistemas', 'logistica', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                  <div class="space-y-2">
                    <div class="flex items-center justify-between p-2">
                     <span>Tracking Inteligente (WhatsApp/SMS)</span>
@@ -459,12 +503,12 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <input type="checkbox" :checked="features.rutas?.enabled" @change="updateFeature('rutas', 'enabled', $event.target.checked)">
                   </div>
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
            </div>
 
-           <!-- E-COMMERCE TABS -->
-           <div v-if="activeTab === 'ecommerce'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
+           <!-- SOPORTE TABS -->
+           <div v-if="activeTab === 'soporte'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
              <FeatureAccordion 
               title="Experiencia de Compra"
               :enabled="modalData.featureCategories.ecommerce.compra.enabled"
@@ -472,7 +516,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('ecommerce', 'compra', 'enabled', $event)"
               @update:features="updateSubcategory('ecommerce', 'compra', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                  <div class="space-y-3">
                    <div class="p-3 bg-700/30 rounded-lg border border-slate-600/50">
                     <div class="flex items-center justify-between mb-2">
@@ -485,7 +529,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <input type="checkbox" :checked="features.busqueda?.enabled" @change="updateFeature('busqueda', 'enabled', $event.target.checked)">
                   </div>
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
 
              <FeatureAccordion 
@@ -495,7 +539,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('ecommerce', 'omnicanal', 'enabled', $event)"
               @update:features="updateSubcategory('ecommerce', 'omnicanal', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                 <div class="flex items-center justify-between p-2">
                     <span>Sincronización Online/Offline</span>
                     <input type="checkbox" :checked="features.sync?.enabled" @change="updateFeature('sync', 'enabled', $event.target.checked)">
@@ -508,12 +552,12 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <span>Programa de Fidelización</span>
                     <input type="checkbox" :checked="features.fidelizacion?.enabled" @change="updateFeature('fidelizacion', 'enabled', $event.target.checked)">
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
            </div>
         
-            <!-- ANALISIS TABS -->
-           <div v-if="activeTab === 'analisis'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
+            <!-- MARKETING TABS -->
+           <div v-if="activeTab === 'marketing'" class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 text-white">
              <FeatureAccordion 
               title="Business Intelligence y Reportes"
               :enabled="modalData.featureCategories.analisis.bi.enabled"
@@ -521,7 +565,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
                @update:enabled="updateSubcategory('analisis', 'bi', 'enabled', $event)"
               @update:features="updateSubcategory('analisis', 'bi', 'features', $event)"
             >
-              <template #default="{ updateFeature, features }">
+              <!-- <template #default="{ updateFeature, features }">
                  <div class="space-y-3">
                    <div class="flex items-center justify-between p-2">
                     <span>Dashboards Automáticos (KPIs)</span>
@@ -536,17 +580,17 @@ const updateSubcategory = (category, subcategory, field, value) => {
                     <input type="checkbox" :checked="features.tendencias?.enabled" @change="updateFeature('tendencias', 'enabled', $event.target.checked)">
                   </div>
                 </div>
-              </template>
+              </template> -->
             </FeatureAccordion>
            </div>
 
         </div>
       </div>
 
-      <div class="p-4 md:p-6 lg:p-8 border-t border-700 bg-800 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 sticky bottom-0">
+      <div class="p-4 md:p-6 lg:p-8 border-t border-700 bg-800 flex flex-col sm:flex-row justify-end md:gap-4 sticky bottom-0">
         <button 
           class="w-full sm:w-auto px-4 md:px-6 py-2.5 rounded-xl font-medium text-300 hover:text-white hover:bg-700 transition-colors order-2 sm:order-1"
-          @click="emit('close')"
+          @click="handleCancel"
         >
           Cancelar
         </button>

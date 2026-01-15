@@ -38,12 +38,12 @@ const updateFeature = (featureKey, field, value) => {
 </script>
 
 <template>
-  <div class="bg-slate-700/30 border border-slate-700 rounded-xl overflow-hidden mb-4">
+  <div class="bg-700 border border-700 rounded-xl overflow-hidden mb-4">
     <!-- Header -->
-    <div class="p-4 flex justify-between items-center bg-slate-700/50">
-      <div class="flex items-center gap-3 flex-1 cursor-pointer" @click="toggleExpand">
-        <component :is="isExpanded ? ChevronDown : ChevronRight" class="w-4 h-4 text-slate-400 transition-transform" />
-        <h4 class="font-medium text-sm md:text-base">{{ title }}</h4>
+    <div class="p-4 flex justify-between items-center bg-700">
+      <div class="flex items-center gap-3 flex-1 cursor-pointer text-600" @click="toggleExpand">
+        <component :is="isExpanded ? ChevronDown : ChevronRight" class="w-4 h-4 text-200 transition-transform" />
+        <h4 class="font-medium text-sm md:text-base text-200">{{ title }}</h4>
       </div>
       
       <label class="relative inline-flex items-center cursor-pointer ml-4">
@@ -60,7 +60,7 @@ const updateFeature = (featureKey, field, value) => {
     <!-- Content -->
     <div 
       v-if="isExpanded && enabled"
-      class="p-4 md:p-6 border-t border-slate-700 bg-slate-800/50 space-y-4"
+      class="p-4 md:p-6 border-t border-slate-700 bg-800 space-y-4"
     >
       <slot :updateFeature="updateFeature" :features="features"></slot>
     </div>

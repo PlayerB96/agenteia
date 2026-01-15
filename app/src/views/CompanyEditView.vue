@@ -1,214 +1,161 @@
-<script setup>
-import { ref, watch } from 'vue'
-import { ClipboardList, Database, Settings, X } from 'lucide-vue-next'
-import FeaturesTabs from '../components/FeaturesTabs.vue'
-import FeatureAccordion from '../components/FeatureAccordion.vue'
+<script setup>  
+  import { ref, markRaw, onMounted, watch } from "vue";
+  import {
+    ArrowBigLeftDash,
+    Sun,
+    MoonStar,
+    Menu,
+    X,
+    LogOut,
+  } from "lucide-vue-next";
+  import { useAuth } from "../utils/useAuth";
+  import AdminSidebar from "../components/AdminSidebar.vue";
+  import StatsGrid from "../components/StatsGrid.vue";
+  import CompanyList from "../components/CompanyList.vue";
+  import CompanyForm from "../components/CompanyForm.vue";
+  import { fetchCompanyById, updateCompany, createCompany } from '../services/companyService'
+  import Swal from 'sweetalert2'
+  import { useRouter, useRoute } from 'vue-router'
+  import { inject } from 'vue'
+  import { computed } from 'vue'
 
-const props = defineProps({
-  company: Object,
-  saving: Boolean
-})
+  const theme = inject('theme')
+  const toggleTheme = inject('toggleTheme')
+  const isEdit = computed(() => !!route.params.id)
+  const { user, logout } = useAuth();
+  const currentView = ref("companies");
+  const companies = ref([])
+  const showModal = ref(false);
+  const mobileMenuOpen = ref(false);
+  const stats = ref({})
+  const router = useRouter()
+  const route = useRoute()
+  const company = ref({})
+  const saving = ref(false)
+  const loadCompany = async () => {
+    company.value = await fetchCompanyById(route.params.id)
+  }
 
-const emit = defineEmits(['close', 'save'])
+  if(isEdit.value){
+    onMounted(loadCompany)
+  }
 
-const activeTab = ref('marketing')
+  const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+  };
 
-const getEmptyModalData = () => ({
-  id: null,
-  name: '',
-  domain: '',
-  active: true,
-  database: {
-    host: '',
-    port: '3306',
-    name: '',
-    user: ''
-  },
-  featureCategories: {
-    marketing: {
-      comunicacion: {
-        enabled: false,
-        features: {
-          whatsapp: { enabled: false, config: { apiKey: '', templateId: '' } },
-          email: { enabled: false, config: { provider: 'sendgrid', apiKey: '' } },
-          sms: { enabled: false, config: { provider: 'twilio' } }
-        }
-      },
-      analisis: {
-        enabled: false,
-        features: {
-          recomendaciones: { enabled: false, config: { algorithm: 'hybrid' } },
-          segmentacion: { enabled: false, config: { autoUpdate: true } },
-          pricing: { enabled: false, config: { strategy: 'dynamic' } }
-        }
+  const handleLogout = () => {
+    logout();
+  };
+  
+  const goBack = () => {
+    router.push('/admin')
+  }
+
+  const saveCompany = async (companyData) => {
+    if (saving.value) return
+    try {
+      saving.value = true
+
+      if (companyData.id) {
+        // ✏️ UPDATE
+        await updateCompany(companyData.id, companyData)
+        goBack()
+      } else {
+        // ➕ CREATE
+        await createCompany(companyData)
+        goBack()
       }
-    },
-    comercial: {
-      atencion: {
-        enabled: false,
-        features: {
-          chatbot: { enabled: false, config: { channels: ['web'], language: 'es' } },
-          reclamos: { enabled: false, config: { autoEscalate: true } },
-          postventa: { enabled: false, config: { surveyDelay: '24h' } }
-        }
-      },
-      ventas: {
-        enabled: false,
-        features: {
-          leadScoring: { enabled: false, config: { threshold: 70 } },
-          crossSelling: { enabled: false, config: { maxSuggestions: 3 } },
-          carrito: { enabled: false, config: { sequence: 'aggressive' } }
-        }
-      }
-    },
-    sistemas: {
-      inventario: {
-        enabled: false,
-        features: {
-          prediccion: { enabled: false, config: { horizon: '30d' } },
-          alertas: { enabled: false, config: { minStock: 10 } },
-          compras: { enabled: false, config: { approvalRequired: true } }
-        }
-      },
-      logistica: {
-        enabled: false,
-        features: {
-          tracking: { enabled: false, config: { provider: 'dhl' } },
-          rutas: { enabled: false, config: { optimization: 'distance' } },
-          rma: { enabled: false, config: { autoApprove: false } }
-        }
-      }
-    },
-    analisis: {
-      bi: {
-        enabled: false,
-        features: {
-          dashboards: { enabled: false, config: { refreshRate: '1h' } },
-          sentimientos: { enabled: false, config: { sources: ['twitter', 'facebook'] } },
-          tendencias: { enabled: false, config: { model: 'lstm' } }
-        }
-      }
-    },
-    ecommerce: {
-      compra: {
-        enabled: false,
-        features: {
-          asistente: { enabled: false, config: { personality: 'friendly' } },
-          busqueda: { enabled: false, config: { semantic: true } },
-          comparador: { enabled: false, config: { attributes: ['price', 'specs'] } }
-        }
-      },
-      omnicanal: {
-        enabled: false,
-        features: {
-          sync: { enabled: false, config: { interval: '5m' } },
-          clickCollect: { enabled: false, config: { locations: [] } },
-          fidelizacion: { enabled: false, config: { pointsRatio: 0.1 } }
-        }
-      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Guardado',
+        text: 'La empresa fue guardada correctamente',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
+        timer: 1500,
+        showConfirmButton: false
+      })
+    } finally {
+      saving.value = false
     }
   }
-})
-
-const modalData = ref(getEmptyModalData())
-
-watch(() => props.company, (newCompany) => {
-  if (newCompany) {
-    // Deep copy to avoid reference issues
-    const data = JSON.parse(JSON.stringify(newCompany))
-    
-    // Ensure all structure exists even if old data format
-    const empty = getEmptyModalData()
-    
-    if (!data.featureCategories) {
-      data.featureCategories = empty.featureCategories
-      
-      // Ensure database structure exists
-      if (!data.database) {
-        data.database = empty.database
-      }
-
-      // Map legacy features if they exist and is Array
-      if (Array.isArray(data.features)) {
-        console.log('Features found (Array):', data.features)
-        
-        data.features.forEach(f => {
-          const name = f.name.toLowerCase()
-          
-          if (name === 'whatsapp') {
-            data.featureCategories.marketing.comunicacion.enabled = true
-            data.featureCategories.marketing.comunicacion.features.whatsapp = {
-              enabled: f.enabled,
-              config: { apiKey: '', templateId: '' }
-            }
-          }
-          
-          if (name === 'email') {
-            data.featureCategories.marketing.comunicacion.enabled = true
-            data.featureCategories.marketing.comunicacion.features.email = {
-              enabled: f.enabled,
-              config: { provider: 'sendgrid', apiKey: '' }
-            }
-          }
-          
-          if (name === 'sms') {
-            data.featureCategories.marketing.comunicacion.enabled = true
-            data.featureCategories.marketing.comunicacion.features.sms = {
-              enabled: f.enabled,
-              config: { provider: 'twilio' }
-            }
-          }
-          
-          if (name === 'ai custom' || name === 'aimodel') {
-            data.featureCategories.ecommerce.compra.enabled = true
-            data.featureCategories.ecommerce.compra.features.asistente = {
-              enabled: f.enabled,
-              config: { personality: 'friendly' }
-            }
-          }
-        })
-      }
-    } else {
-       // Merge with empty to ensure all new fields prevent undefined errors if schema changed
-       if (!data.database) {
-          data.database = empty.database
-       }
-    }
-
-    modalData.value = data
-  } else {
-    modalData.value = getEmptyModalData()
-  }
-}, { immediate: true })
-
-const handleSave = () => {
-  emit('save', {
-    id: modalData.value.id ?? null,
-    name: modalData.value.name,
-    domain: modalData.value.domain,
-    active: modalData.value.active,
-    database: {
-      host: modalData.value.database.host,
-      port: modalData.value.database.port,
-      name: modalData.value.database.name,
-      user: modalData.value.database.user
-    }
-  })
-}
-
-const updateSubcategory = (category, subcategory, field, value) => {
-  if (field === 'enabled') {
-    modalData.value.featureCategories[category][subcategory].enabled = value
-  } else if (field === 'features') {
-    modalData.value.featureCategories[category][subcategory].features = value
-  }
-}
 </script>
 
 <template>
+  <div class="flex min-h-screen font-sans bg-900 text-100">
+    <!-- Mobile Menu Button -->
+    <button
+      @click="toggleMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-800 border border-700 rounded-lg text-white hover:bg-slate-700 transition-colors"
+    >
+      <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
+      <X v-else class="w-6 h-6" />
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div
+      v-if="mobileMenuOpen"
+      class="lg:hidden fixed inset-0 bg-black/50 z-30"
+      @click="mobileMenuOpen = false"
+    ></div>
+
+    <!-- Sidebar -->
+    <AdminSidebar
+      :current-view="currentView"
+      :mobile-open="mobileMenuOpen"
+      @update:current-view="
+        currentView = $event;
+        mobileMenuOpen = false;
+      "
+    />
+
     <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto pt-16 lg:pt-8">
       <header class="mb-6 md:mb-8 flex justify-between items-start">
-        zzzz
+        <div class="flex items-center gap-3 self-center">
+          <button
+            @click="goBack"
+            class="text-2xl bg-700 rounded-lg px-4 py-2 "
+            title="Volver"
+          >
+            <ArrowBigLeftDash class="h-5 w-5"/>
+          </button>
+          <h1 class="text-2xl text-3xl font-bold mb-2">
+            {{ isEdit ? 'Editar Empresa' : 'Nueva Empresa' }}
+          </h1>
+        </div>
+        <div class="flex items-center gap-2 self-center">
+          <button
+            @click="toggleTheme"
+            class="px-4 py-2 rounded-lg transition
+                  bg-slate-100
+                  dark:bg-slate-900 dark:text-white"
+            title="Cambiar Tema"
+          >
+            <MoonStar v-if="theme === 'dark'" class="w-5 h-5" />
+            <Sun v-else class="w-5 h-5" />
+          </button>
+          <button
+            @click="handleLogout"
+            class="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm"
+          >
+            <LogOut class="w-4 h-4" />
+            <span class="hidden sm:inline">Cerrar Sesión</span>
+          </button>
+        </div>
       </header>
-  </main>
+      
+      <CompanyForm
+        :company="company"
+        :saving="saving"
+        @save="saveCompany"
+        @cancel="goBack"
+      />
+    </main>
+  </div>
 </template>

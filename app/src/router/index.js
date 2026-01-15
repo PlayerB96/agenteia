@@ -40,6 +40,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'saas_owner' }
   },
   {
+    path: '/companies/:id/edit',
+    name: 'EditCompany',
+    component: CompanyEditView,
+    meta: { requiresAuth: true, role: 'saas_owner' }
+  },
+  {
     path: '/company',
     name: 'CompanyDashboard',
     component: CompanyDashboard,

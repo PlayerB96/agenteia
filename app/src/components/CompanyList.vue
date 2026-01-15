@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { MessageSquare, Mail, Smartphone, Webhook, Brain, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const loading = ref(false)
 const error = ref(null)
@@ -56,6 +57,13 @@ const getActiveFeatures = (company) => {
   
   return active  
 }
+
+const router = useRouter()
+const route = useRoute()
+
+const goEdit = (id) => {
+  router.push(`/companies/${id}/edit`)
+}
 </script>
 
 <template>
@@ -64,7 +72,7 @@ const getActiveFeatures = (company) => {
       <h2 class="text-xl text-2xl font-bold">Empresas Configuradas</h2>
       <button 
         class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5"
-        @click="emit('openModal', null)"
+        @click="router.push({ name: 'NewCompany' })"
       >
         <span class="text-lg">+</span>
         Nueva Empresa
@@ -81,7 +89,7 @@ const getActiveFeatures = (company) => {
             v-for="company in activeCompanies"
             :key="company.id"
             class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
-            @click="emit('openModal', company)"
+            @click="goEdit(company.id)"
           >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
@@ -128,7 +136,7 @@ const getActiveFeatures = (company) => {
           v-for="company in inactiveCompanies"
           :key="company.id"
           class="bg-700 border border-700 hover:border-red-500/40 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
-          @click="emit('openModal', company)"
+          @click="goEdit(company.id)"
         >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
