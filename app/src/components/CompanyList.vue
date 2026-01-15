@@ -61,7 +61,7 @@ const getActiveFeatures = (company) => {
 <template>
   <section class="bg-800 border border-700 rounded-2xl p-4 md:p-6 lg:p-8">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-      <h2 class="text-xl md:text-2xl font-bold">Empresas Configuradas</h2>
+      <h2 class="text-xl text-2xl font-bold">Empresas Configuradas</h2>
       <button 
         class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5"
         @click="emit('openModal', null)"
@@ -72,7 +72,7 @@ const getActiveFeatures = (company) => {
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-sm uppercase text-emerald-400 font-bold tracking-wider mb-2">
+      <h3 class="text-sm uppercase text-emerald-400-ag font-bold tracking-wider mb-2">
         Empresas Activas ({{ activeCompanies.length }})
       </h3>
 

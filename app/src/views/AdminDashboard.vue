@@ -1,6 +1,8 @@
 <script setup>  
   import { ref, markRaw, onMounted, watch } from "vue";
   import {
+    Sun,
+    MoonStar,
     MessageSquare,
     Mail,
     Smartphone,
@@ -177,21 +179,25 @@
             Bienvenido, {{ user.name || user.email }}
           </p>
         </div>
-        <button
-          @click="toggleTheme"
-          class="px-4 py-2 rounded-lg transition
-                bg-slate-200 text-slate-900
-                dark:bg-slate-700 dark:text-white"
-        >
-          {{ theme === 'dark' ? '🌙 Dark' : '☀️ Light' }}
-        </button>
-        <button
-          @click="handleLogout"
-          class="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm"
-        >
-          <LogOut class="w-4 h-4" />
-          <span class="hidden sm:inline">Cerrar Sesión</span>
-        </button>
+        <div class="flex items-center gap-2 self-center">
+          <button
+            @click="toggleTheme"
+            class="px-4 py-2 rounded-lg transition
+                  bg-slate-100
+                  dark:bg-slate-900 dark:text-white"
+            title="Cambiar Tema"
+          >
+            <MoonStar v-if="theme === 'dark'" class="w-5 h-5" />
+            <Sun v-else class="w-5 h-5" />
+          </button>
+          <button
+            @click="handleLogout"
+            class="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-colors text-sm"
+          >
+            <LogOut class="w-4 h-4" />
+            <span class="hidden sm:inline">Cerrar Sesión</span>
+          </button>
+        </div>
       </header>
 
       <StatsGrid :stats="stats" />

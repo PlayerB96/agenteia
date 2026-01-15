@@ -24,7 +24,7 @@ const navItems = ref([
   ]">
 
     <div class="px-8 pb-8">
-      <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+      <h1 class="text-xl text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
         <component :is="Settings" class="w-6 h-6 md:w-8 md:h-8 text-indigo-500" />
         AgentIA
       </h1>

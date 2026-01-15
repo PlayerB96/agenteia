@@ -8,7 +8,7 @@ defineProps({
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-800 border rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30">
+    <div class="bg-800 border rounded-2xl p-6 hover:-translate-y-1 hover:shadow-black/30">
       <div class="flex justify-between items-center mb-4">
         <span class="text-400 text-sm uppercase tracking-wider font-semibold">Empresas Activas</span>
         <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-500 flex items-center justify-center">
@@ -21,7 +21,7 @@ defineProps({
       </div>
     </div>
 
-    <div class="bg-800 border rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30">
+    <div class="bg-800 border rounded-2xl p-6 hover:-translate-y-1 hover:shadow-black/30">
       <div class="flex justify-between items-center mb-4">
         <span class="text-400 text-sm uppercase tracking-wider font-semibold">Canales conectados</span>
         <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-500 flex items-center justify-center dark:bg-purple-400/20 dark:text-purple-400">
@@ -34,7 +34,7 @@ defineProps({
       </div>
     </div>
 
-    <div class="bg-800 border rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30">
+    <div class="bg-800 border rounded-2xl p-6 hover:-translate-y-1 hover:shadow-black/30">
       <div class="flex justify-between items-center mb-4">
         <span class="text-400 text-sm uppercase tracking-wider font-semibold">Última interacción</span>
         <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400-ag flex items-center justify-center">
@@ -47,7 +47,7 @@ defineProps({
       </div>
     </div>
 
-    <div class="bg-800 border rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30">
+    <div class="bg-800 border rounded-2xl p-6 hover:-translate-y-1 hover:shadow-black/30">
       <div class="flex justify-between items-center mb-4">
         <span class="text-400 text-sm uppercase tracking-wider font-semibold">Conversaciones atendidas</span>
         <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center">

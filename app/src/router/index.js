@@ -7,6 +7,7 @@ import { useAuth } from '../utils/useAuth'
 import Login from '../views/Login.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
 import CompanyDashboard from '../views/CompanyDashboard.vue'
+import CompanyEditView from '../views/CompanyEditView.vue'
 
 import Callback from '../views/Callback.vue'
 import Onboarding from '../views/Onboarding.vue'
@@ -30,6 +31,12 @@ const routes = [
     path: '/admin',
     name: 'AdminDashboard',
     component: AdminDashboard,
+    meta: { requiresAuth: true, role: 'saas_owner' }
+  },
+  {
+    path: '/companies/new',
+    name: 'NewCompany',
+    component: CompanyEditView,
     meta: { requiresAuth: true, role: 'saas_owner' }
   },
   {
