@@ -1,6 +1,20 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { ClipboardList, Database, Settings, X, Users, Zap, TrendingUp, MessageCircle, Activity, Brain } from 'lucide-vue-next'
+import { ClipboardList, 
+  Database, 
+  Settings, 
+  X, 
+  Users, 
+  Zap, 
+  TrendingUp, 
+  MessageCircle, 
+  Activity, 
+  Brain,
+  MessageCircleCode,
+  FileText,
+  Download,
+  RefreshCw
+ } from 'lucide-vue-next'
 import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
 import StatsAgent from './StatsAgent.vue'
@@ -25,6 +39,13 @@ const getEmptyModalData = () => ({
   },
   options: {
     max_tokens: '',
+  },
+  channels: {
+    whatsapp: '',
+    email: '',
+    sms: '',
+    webhook: '',
+    aicustom: ''
   },
   featureCategories: {
     marketing: {
@@ -133,6 +154,15 @@ watch(() => props.company, (newCompany) => {
         data.database = empty.database
       }
 
+      // Ensure options structure exists
+      if (!data.options) {
+        data.options = empty.options
+      }
+
+      if(!data.channels) {
+        data.channels = empty.channels
+      }
+
       // Map legacy features if they exist and is Array
       if (Array.isArray(data.features)) {
         console.log('Features found (Array):', data.features)
@@ -207,6 +237,14 @@ const handleSave = () => {
     },
     options: {
       max_tokens: modalData.value.options.max_tokens,
+      timeout: modalData.value.options.timeout,
+    },
+    channels: {
+      whatsapp: '',
+      email: '',
+      sms: '',
+      webhook: '',
+      aicustom: ''
     }
   })
 }
@@ -318,7 +356,7 @@ const statsAgent = ref(getStatsAgent())
           <StatsAgent :stats-agent="statsAgent" />
         </div>
         
-        <!-- Funcionalidades por Categoría -->
+        <!-- Opciones Avanzadas -->
         <div class="space-y-3 md:space-y-4">
           <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
             <Brain class="w-4 h-4 md:w-5 md:h-5" />
@@ -326,7 +364,115 @@ const statsAgent = ref(getStatsAgent())
           </h3>
           <div class="space-y-2">
             <label class="text-sm font-medium text-300">Max Tokens</label>
-            <input type="number" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.options.max_tokens" placeholder="maximotokens">
+            <input type="number" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.options.max_tokens" placeholder="maximo tokens">
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-300">Timeout (segundos)</label>
+            <input type="number" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.options.timeout" placeholder="timeout">
+          </div>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.options.debug" placeholder="debug">
+              <label class="text-sm font-medium text-300">Modo Debug</label>
+            </div>
+          </div>
+        </div>
+        <!-- Acciones -->
+         <div class="space-y-3 md:space-y-4">
+          <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
+            <Activity class="w-4 h-4 md:w-5 md:h-5" />
+            Acciones
+          </h3>
+          <div class="flex gap-2">
+            <button
+              @click="probeAgent"
+              class="
+                w-full
+                flex items-center justify-center gap-2
+                bg-blue-500 hover:bg-blue-600
+                text-white font-bold
+                py-2.5 rounded-lg
+              "
+            >
+              <MessageCircleCode class="w-4 h-4 md:w-5 md:h-5" />
+              <span>Probar Agente</span>
+            </button>
+            <button @click="viewLogs"
+              class="
+                w-full
+                flex items-center justify-center gap-2
+                bg-purple-500 hover:bg-purple-600
+                text-white font-bold
+                py-2.5 rounded-lg
+              "
+            >
+              <FileText class="w-4 h-4 md:w-5 md:h-5" />
+              Ver Logs
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button @click="exportConfig"
+              class="
+                w-full
+                flex items-center justify-center gap-2
+                bg-green-500 hover:bg-green-600
+                text-white font-bold
+                py-2.5 rounded-lg
+              "
+            >
+              <Download class="w-4 h-4 md:w-5 md:h-5" />
+              Exportar Config
+            </button>
+            <button @click="resetConfig"
+              class="
+                w-full
+                flex items-center justify-center gap-2
+                bg-orange-500 hover:bg-orange-600
+                text-white font-bold
+                py-2.5 rounded-lg
+              "
+            >
+              <RefreshCw class="w-4 h-4 md:w-5 md:h-5" />
+              Reestablecer
+            </button>
+          </div>
+        </div>
+        
+        <!-- Opciones Avanzadas -->
+        <div class="space-y-3 md:space-y-4">
+          <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
+            <MessageCircle class="w-4 h-4 md:w-5 md:h-5" />
+            Canales de Comunicacion
+          </h3>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.whatsapp" placeholder="debug">
+              <label class="text-sm font-medium text-300">Whatsapp</label>
+            </div>
+          </div>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.email" placeholder="debug">
+              <label class="text-sm font-medium text-300">Email</label>
+            </div>
+          </div>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.sms" placeholder="debug">
+              <label class="text-sm font-medium text-300">SMS</label>
+            </div>
+          </div>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.webhook" placeholder="debug">
+              <label class="text-sm font-medium text-300">Webhook</label>
+            </div>
+          </div>
+          <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
+            <div class="flex items-center mb-2 gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.aicustom" placeholder="debug">
+              <label class="text-sm font-medium text-300">AICustom</label>
+            </div>
           </div>
         </div>
         <!-- Funcionalidades por Categoría -->
