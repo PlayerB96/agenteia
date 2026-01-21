@@ -3,24 +3,11 @@ defineProps({
   stats: Object,
 });
 
-import { Bot, Activity, MessageSquare, Clock } from "lucide-vue-next";
+import { TrendingUp, Activity, MessageSquare, Zap } from "lucide-vue-next";
 </script>
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-    <!-- Total Agents -->
-    <div
-      class="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-6"
-    >
-      <div class="flex items-center justify-between mb-2">
-        <Bot class="w-8 h-8 text-blue-400" />
-      </div>
-      <p class="text-2xl md:text-3xl font-bold text-white mb-1">
-        {{ stats.totalAgents }}
-      </p>
-      <p class="text-sm text-slate-400">Total Agentes</p>
-    </div>
-
     <!-- Active Agents -->
     <div
       class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-xl p-6"
@@ -44,7 +31,20 @@ import { Bot, Activity, MessageSquare, Clock } from "lucide-vue-next";
       <p class="text-2xl md:text-3xl font-bold text-white mb-1">
         {{ stats.totalMessages.toLocaleString() }}
       </p>
-      <p class="text-sm text-slate-400">Mensajes Procesados</p>
+      <p class="text-sm text-slate-400">Mensajes Totales</p>
+    </div>
+
+    <!-- Total Agents -->
+    <div
+      class="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-6"
+    >
+      <div class="flex items-center justify-between mb-2">
+        <TrendingUp class="w-8 h-8 text-blue-400" />
+      </div>
+      <p class="text-2xl md:text-3xl font-bold text-white mb-1">
+        {{ stats.totalAgents }}
+      </p>
+      <p class="text-sm text-slate-400">Éxito Promedio</p>
     </div>
 
     <!-- Avg Response Time -->
@@ -52,12 +52,12 @@ import { Bot, Activity, MessageSquare, Clock } from "lucide-vue-next";
       class="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-xl p-6"
     >
       <div class="flex items-center justify-between mb-2">
-        <Clock class="w-8 h-8 text-orange-400" />
+        <Zap class="w-8 h-8 text-orange-400" />
       </div>
       <p class="text-2xl md:text-3xl font-bold text-white mb-1">
-        {{ stats.avgResponseTime }}
+        {{ stats.channelsActive }}
       </p>
-      <p class="text-sm text-slate-400">Tiempo Promedio</p>
+      <p class="text-sm text-slate-400">Canales activos</p>
     </div>
   </div>
 </template>

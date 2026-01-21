@@ -99,7 +99,7 @@ onMounted(() => {
 
         <!-- Social Login Only -->
         <div v-else class="py-4">
-          <h2 class="text-3xl font-bold text-white mb-4">Bienvenido</h2>
+          <h2 class="text-3xl font-bold text-white mb-4" style="color: white !important;">Bienvenido</h2>
           
           <p class="text-slate-400 mb-10 text-lg">
             Selecciona tu cuenta para continuar

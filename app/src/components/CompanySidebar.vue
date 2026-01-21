@@ -30,7 +30,7 @@ const menuItems = [
         >
           Agenteia
         </h2>
-        <p class="text-xs text-slate-500 mt-1">Dashboard Empresarial</p>
+        <p class="text-xs text-500 mt-1">Dashboard Empresarial</p>
       </div>
 
       <!-- Navigation -->
@@ -43,7 +43,7 @@ const menuItems = [
             'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
             currentView === item.id
               ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-              : 'text-slate-400 hover:bg-slate-700/50 hover:text-slate-200',
+              : 'text-300 hover:bg-700 hover:text-100',
           ]"
         >
           <component :is="item.icon" class="w-5 h-5" />

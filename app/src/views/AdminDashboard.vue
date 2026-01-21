@@ -183,8 +183,8 @@
           <button
             @click="toggleTheme"
             class="px-4 py-2 rounded-lg transition
-                  bg-slate-100
-                  dark:bg-slate-900 dark:text-white"
+                  bg-100
+                  dark:bg-900 text-100"
             title="Cambiar Tema"
           >
             <MoonStar v-if="theme === 'dark'" class="w-5 h-5" />

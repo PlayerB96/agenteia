@@ -71,7 +71,7 @@ const goEdit = (id) => {
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <h2 class="text-xl text-2xl font-bold">Empresas Configuradas</h2>
       <button 
-        class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+        class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 hover:-translate-y-0.5"
         @click="router.push({ name: 'NewCompany' })"
       >
         <span class="text-lg">+</span>
@@ -88,12 +88,12 @@ const goEdit = (id) => {
           <div
             v-for="company in activeCompanies"
             :key="company.id"
-            class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
+            class="bg-700 border border-700 hover:border-indigo-500/50 rounded-xl p-4 md:p-6 cursor-pointer"
             @click="goEdit(company.id)"
           >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
-                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.name }}</h3>
                 <p class="text-200 text-sm">{{ company.domain }}</p>
               </div>
               <span 
@@ -108,12 +108,12 @@ const goEdit = (id) => {
               <!-- SWITCH -->
               <button
                 @click.stop="$emit('toggle-active', company)"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                class="relative inline-flex h-6 w-11 items-center rounded-full"
                 :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
                 title="Activar / Desactivar"
               >
                 <span
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  class="inline-block h-4 w-4 transform rounded-full bg-white"
                   :class="company.active ? 'translate-x-6' : 'translate-x-1'"
                 />
               </button>
@@ -135,12 +135,12 @@ const goEdit = (id) => {
         <div
           v-for="company in inactiveCompanies"
           :key="company.id"
-          class="bg-700 border border-700 hover:border-red-500/40 rounded-xl p-4 md:p-6 cursor-pointer transition-all"
+          class="bg-700 border border-700 hover:border-red-500/40 rounded-xl p-4 md:p-6 cursor-pointer"
           @click="goEdit(company.id)"
         >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
-                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 transition-colors text-200">{{ company.name }}</h3>
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.name }}</h3>
                 <p class="text-200 text-sm">{{ company.domain }}</p>
               </div>
               <span 
@@ -155,7 +155,7 @@ const goEdit = (id) => {
               <!-- SWITCH -->
               <button
                 @click.stop="$emit('toggle-active', company)"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                class="relative inline-flex h-6 w-11 items-center rounded-full"
                 :class="company.active ? 'bg-emerald-400-ag' : 'bg-600'"
                 title="Activar / Desactivar"
               >

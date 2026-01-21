@@ -371,9 +371,9 @@ const statsAgent = ref(getStatsAgent())
             <input type="number" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.options.timeout" placeholder="timeout">
           </div>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.options.debug" placeholder="debug">
-              <label class="text-sm font-medium text-300">Modo Debug</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.options.debug" id="debug">
+              <label for="debug" class="text-sm font-medium text-300 w-full h-full">Modo Debug</label>
             </div>
           </div>
         </div>
@@ -445,33 +445,33 @@ const statsAgent = ref(getStatsAgent())
             Canales de Comunicacion
           </h3>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.channels.whatsapp" placeholder="debug">
-              <label class="text-sm font-medium text-300">Whatsapp</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.whatsapp" id="whatsapp">
+              <label for="whatsapp" class="font-medium text-300 w-full h-full">Whatsapp</label>
             </div>
           </div>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.channels.email" placeholder="debug">
-              <label class="text-sm font-medium text-300">Email</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.email" id="email">
+              <label for="email" class="font-medium text-300 w-full h-full">Email</label>
             </div>
           </div>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.channels.sms" placeholder="debug">
-              <label class="text-sm font-medium text-300">SMS</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.sms" id="sms">
+              <label for="sms" class="font-medium text-300 w-full h-full">SMS</label>
             </div>
           </div>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.channels.webhook" placeholder="debug">
-              <label class="text-sm font-medium text-300">Webhook</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.webhook" id="webhook">
+              <label for="webhook" class="font-medium text-300 w-full h-full">Webhook</label>
             </div>
           </div>
           <div class="p-3 bg-700 rounded-lg border border-slate-600/50">
-            <div class="flex items-center mb-2 gap-3">
-              <input type="checkbox" class="bg-700" v-model="modalData.channels.aicustom" placeholder="debug">
-              <label class="text-sm font-medium text-300">AICustom</label>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="bg-700" v-model="modalData.channels.aicustom" id="aicustom">
+              <label for="aicustom" class="font-medium text-300 w-full h-full">AICustom</label>
             </div>
           </div>
         </div>
