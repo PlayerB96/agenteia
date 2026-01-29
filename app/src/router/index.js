@@ -52,6 +52,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'company_admin' }
   },
   {
+    path: '/company/:agentName',
+    name: 'AgentChatView',
+    component: () => import('../views/AgentChatView.vue'),
+    meta: { requiresAuth: true, role: 'company_admin' }
+  },
+  {
     path: '/onboarding',
     name: 'Onboarding',
     component: Onboarding,

@@ -92,7 +92,7 @@ watch(
           </h3>
           <div class="space-y-2">
             <label class="text-sm font-medium text-300">Nombre del agente</label>
-            <select v-model="modalAgent.name" class="w-full bg-700 border border-600 rounded-lg px-3 py-2 text-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full">
+            <select v-model="modalAgent.name" class="w-full bg-700 border border-600 rounded-lg px-3 py-2 text-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="0">Seleccione agente</option>
               <option value="Agente Soporte">Agente Soporte</option>
               <option value="Agente Comercial">Agente Comercial</option>
@@ -102,7 +102,7 @@ watch(
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-300">Descripción</label>
-            <textarea v-model="modalAgent.description" class="w-full bg-700 border border-600 rounded-lg px-3 py-2 text-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"></textarea>
+            <textarea v-model="modalAgent.description" class="w-full bg-700 border border-600 rounded-lg px-3 py-2 text-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
       </div>
       <div class="p-4 md:p-6 lg:p-8 border-t border-700 bg-800 flex flex-col sm:flex-row justify-end md:gap-4 sticky bottom-0">

@@ -1,5 +1,15 @@
 <script setup>
 import { ref } from "vue";
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+const goToAgentChat = (agent) => {
+  if (agent && agent.name) {
+    const agentUrl = agent.name.replace(/\s+/g, '_');
+    router.push(`/company/${encodeURIComponent(agentUrl)}`);
+  }
+};
+import { showSwalAlert } from './SwalAlert.js';
 import { Plus, Power, PowerOff, Edit, Trash2 } from "lucide-vue-next";
 import ModalAddAgent from "./ModalAddAgent.vue";
 const props = defineProps({
@@ -11,6 +21,14 @@ const modalMode = ref("add"); // add | edit
 const selectedAgent = ref(null);
 
 const openAdd = () => {
+  if (props.agents && props.agents.length >= 4) {
+    showSwalAlert({
+      icon: 'warning',
+      title: 'Límite alcanzado',
+      text: 'Ya tienes creados todos los agentes permitidos (4).',
+    });
+    return;
+  }
   modalMode.value = "add";
   selectedAgent.value = null;
   showAddModal.value = true;
@@ -41,23 +59,24 @@ const reloadAgents = () => {
     </div>
 
     <!-- Agents Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
       <div
         v-for="agent in agents"
         :key="agent.id"
-        class="bg-800 border border-700 rounded-xl p-6 hover:border-600"
+        class="bg-800 border border-700 rounded-xl p-4 sm:p-6 hover:border-600 cursor-pointer hover:shadow-lg transition-all duration-200"
+        @click="goToAgentChat(agent)"
       >
         <!-- Header -->
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
           <div class="flex-1">
-            <h3 class="text-lg font-semibold text-100 mb-1">
+            <h3 class="text-lg font-semibold text-100 mb-1 break-words">
               {{ agent.name }}
             </h3>
-            <p class="text-sm text-400">{{ agent.description }}</p>
+            <p class="text-sm text-400 break-words">{{ agent.description }}</p>
           </div>
           <div
-            :class="[
-              'px-3 py-1 rounded-full text-xs font-medium',
+            :class=" [
+              'px-3 py-1 rounded-full text-xs font-medium mt-2 sm:mt-0',
               agent.active
                 ? 'bg-green-500 text-200 border border-600'
                 : 'bg-700 text-100 border border-600',
@@ -80,7 +99,7 @@ const reloadAgents = () => {
             v-else
             v-for="feature in agent.features"
             :key="feature.name"
-            :class="[
+            :class=" [
               'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs',
               feature.enabled
                 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
@@ -109,16 +128,16 @@ const reloadAgents = () => {
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-2">
+        <div class="flex flex-col sm:flex-row gap-2">
           <button
             class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-700 hover:bg-700 text-200 rounded-lg text-sm"
-            @click="openEdit(agent)"
+            @click.stop="openEdit(agent)"
           >
             <Edit class="w-4 h-4" />
             Editar
           </button>
           <button
-            :class="[
+            :class=" [
               'flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm',
               agent.active
                 ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30'

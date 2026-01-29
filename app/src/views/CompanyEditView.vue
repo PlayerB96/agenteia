@@ -133,7 +133,7 @@
           >
             <ArrowBigLeftDash class="h-5 w-5"/>
           </button>
-          <h1 class="text-2xl text-3xl font-bold mb-2">
+          <h1 class="text-2xl font-bold mb-2">
             {{ isEdit ? 'Editar Empresa' : 'Nueva Empresa' }}
           </h1>
         </div>
