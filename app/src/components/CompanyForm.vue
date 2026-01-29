@@ -18,7 +18,7 @@ import { ClipboardList,
 import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
 import StatsAgent from './StatsAgent.vue'
-import Swal from 'sweetalert2'
+import { showSwalAlert } from './SwalAlert.js'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -217,7 +217,7 @@ const updateSubcategory = (category, subcategory, field, value) => {
 }
 const handleSave = () => {
   if (!modalData.value.ruc || !modalData.value.razonsocial || !modalData.value.actividad_economica || !modalData.value.representante_legal || !modalData.value.tipo_empresa) {
-    Swal.fire({
+    showSwalAlert({
       icon: 'warning',
       title: 'Error',
       text: 'Por favor, complete todos los campos obligatorios.'

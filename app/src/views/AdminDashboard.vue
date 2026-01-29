@@ -17,7 +17,7 @@
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
   import { fetchCompanies, createCompany, updateCompany, deleteCompany, toggleCompany, fetchDashboard } from '../services/companyService'
-  import Swal from 'sweetalert2'
+  import { showSwalAlert } from '../components/SwalAlert.js'
 
   import { inject } from 'vue'
 
@@ -61,7 +61,7 @@
   const saving = ref(false)
 
   const removeCompany = async (company) => {
-    const confirm = await Swal.fire({
+    const confirm = await showSwalAlert({
       title: '¿Eliminar empresa?',
       text: `Se eliminará "${company.razonsocial}"`,
       icon: 'warning',
@@ -75,10 +75,18 @@
     try {
       await deleteCompany(company.id)
       await loadCompanies() // 🔄 refresca listado
-      Swal.fire('Eliminado', 'Empresa eliminada correctamente', 'success')
+      showSwalAlert({
+        icon: 'success',
+        title: 'Eliminado',
+        text: 'Empresa eliminada correctamente'
+      })
     } catch (e) {
       console.error(e)
-      Swal.fire('Error', 'No se pudo eliminar', 'error')
+      showSwalAlert({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar'
+      })
     }
   }
 

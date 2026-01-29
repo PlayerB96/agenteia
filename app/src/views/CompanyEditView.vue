@@ -13,7 +13,7 @@
   import CompanyList from "../components/CompanyList.vue";
   import CompanyForm from "../components/CompanyForm.vue";
   import { fetchCompanyById, updateCompany, createCompany, fetchDashboardCompany } from '../services/companyService'
-  import Swal from 'sweetalert2'
+  import { showSwalAlert } from '../components/SwalAlert.js'
   import { useRouter, useRoute } from 'vue-router'
   import { inject } from 'vue'
   import { computed } from 'vue'
@@ -74,7 +74,7 @@
         await createCompany(companyData)
         goBack()
       }
-      Swal.fire({
+      showSwalAlert({
         icon: 'success',
         title: 'Guardado',
         text: 'La empresa fue guardada correctamente',
@@ -82,7 +82,7 @@
         showConfirmButton: false
       })
     } catch (error) {
-      Swal.fire({
+      showSwalAlert({
         icon: 'error',
         title: 'Error',
         text: error.message,
