@@ -19,9 +19,11 @@ import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
 import StatsAgent from './StatsAgent.vue'
 import Swal from 'sweetalert2'
+import { computed } from 'vue'
 
 const props = defineProps({
   company: Object,
+  dashboard: Object,
   saving: Boolean
 })
 
@@ -252,13 +254,36 @@ const handleCancel = () => {
   emit('cancel')
 }
 
-const getStatsAgent = () => ([
-  { label: 'Agentes Activos', value: 8, icon: Activity, color: "from-green-500 to-teal-500"},
-  { label: 'Mensajes totales', value: 54, icon: MessageCircle, color: "from-purple-500 to-fuchsia-500"},
-  { label: 'Éxito promedio', value: 32, icon: TrendingUp, color: "from-orange-500 to-amber-500"},
-  { label: 'Canales Activos', value: 12, icon: Zap, color: "from-blue-500 to-sky-500"},
-])
-const statsAgent = ref(getStatsAgent())
+const statsAgent = computed(() => {
+  if (!props.dashboard?.data) return []
+
+  return [
+    {
+      label: 'Agentes Activos',
+      value: Number(props.dashboard.data.agentes_activos ?? 0),
+      icon: Activity,
+      color: 'from-green-500 to-teal-500'
+    },
+    {
+      label: 'Mensajes totales',
+      value: Number(props.dashboard.data.mensajes_totales ?? 0),
+      icon: MessageCircle,
+      color: 'from-purple-500 to-fuchsia-500'
+    },
+    {
+      label: 'Tasa Éxito (%)',
+      value: Number(props.dashboard.data.tasa_exito ?? 0),
+      icon: TrendingUp,
+      color: 'from-orange-500 to-amber-500'
+    },
+    {
+      label: 'Servicios Activos',
+      value: Number(props.dashboard.data.servicios_activos ?? 0),
+      icon: Zap,
+      color: 'from-blue-500 to-sky-500'
+    }
+  ]
+})
 </script>
 
 <template>

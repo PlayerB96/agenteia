@@ -10,10 +10,9 @@
   } from "lucide-vue-next";
   import { useAuth } from "../utils/useAuth";
   import AdminSidebar from "../components/AdminSidebar.vue";
-  import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
   import CompanyForm from "../components/CompanyForm.vue";
-  import { fetchCompanyById, updateCompany, createCompany } from '../services/companyService'
+  import { fetchCompanyById, updateCompany, createCompany, fetchDashboardCompany } from '../services/companyService'
   import Swal from 'sweetalert2'
   import { useRouter, useRoute } from 'vue-router'
   import { inject } from 'vue'
@@ -27,18 +26,27 @@
   const companies = ref([])
   const showModal = ref(false);
   const mobileMenuOpen = ref(false);
-  const stats = ref({})
+  const StatsAgent = ref({})
   const router = useRouter()
   const route = useRoute()
   const company = ref({})
+  const dashboard = ref({})
   const saving = ref(false)
   const loadCompany = async () => {
     company.value = await fetchCompanyById(route.params.id)
   }
 
-  if(isEdit.value){
-    onMounted(loadCompany)
+  const loadDashboardCompany = async () => {
+    dashboard.value = await fetchDashboardCompany(route.params.id)
   }
+
+  
+  onMounted(async () => {
+    if (isEdit.value) {
+      company.value = await fetchCompanyById(route.params.id)
+      dashboard.value = await fetchDashboardCompany(route.params.id)
+    }
+  })
 
   const toggleMobileMenu = () => {
     mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -152,6 +160,7 @@
       
       <CompanyForm
         :company="company"
+        :dashboard="dashboard"
         :saving="saving"
         @save="saveCompany"
         @cancel="goBack"

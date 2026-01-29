@@ -110,3 +110,9 @@ export const fetchCompanyById = async (id) => {
     active: data.active
   }
 }
+
+export const fetchDashboardCompany = async (id) => {
+  const res = await axios.get(`${API}company/dashboard?id=${id}`)
+  if(res.status !== 200) return []
+  return res.data
+}
