@@ -4,9 +4,13 @@ const API = '/api-worker/'
 
 // CREATE
 export const createCompany = async (company) => {
-  const { data } = await axios.post(API + 'configs', {
-    data: company,
-    active: company.active
+  const { data } = await axios.post(API + 'company', {
+      "ruc": company.ruc,
+      "razonsocial": company.razonsocial,
+      "nombre_comercial": company.nombre_comercial,
+      "actividad_economica": company.actividad_economica,
+      "representante_legal": company.representante_legal,
+      "tipo_empresa": company.tipo_empresa
   })
 
   return normalizeCompany(data)
@@ -14,9 +18,13 @@ export const createCompany = async (company) => {
 
 // UPDATE
 export const updateCompany = async (id, company) => {
-  const { data } = await axios.put(`${API}configs?id=${id}`, {
-    data: company,
-    active: company.active
+  const { data } = await axios.put(`${API}company?id=${id}`, {
+    "ruc": company.ruc,
+    "razonsocial": company.razonsocial,
+    "nombre_comercial": company.nombre_comercial,
+    "actividad_economica": company.actividad_economica,
+    "representante_legal": company.representante_legal,
+    "tipo_empresa": company.tipo_empresa
   })
 
   return normalizeCompany(data)
@@ -36,36 +44,41 @@ const normalizeCompany = (item) => {
 }
 
 export const fetchCompanies = async () => {
-  const res = await axios.get(API + 'configs')
+  const res = await axios.get(API + 'company')
 
-  if (res.status !== 200) return []
+  if (res.status !== 200 || !Array.isArray(res.data?.data)) {
+    return []
+  }
 
-  return res.data.results.map(item => {
-    const parsed = JSON.parse(item.data)
+  return res.data.data.map(item => {
+    let parsed = {}
 
     return {
       id: item.id,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
 
       // datos reales de empresa
-      name: parsed.name,
-      domain: parsed.domain,
-      active: item.active ? 1 : 0,
-      database: parsed.database,
+      ruc: item.ruc ?? '',
+      razonsocial: item.razonsocial ?? '',
+      nombre_comercial: item.nombre_comercial ?? '',
+      actividad_economica: item.actividad_economica ?? '',
+      representante_legal: item.representante_legal ?? '',
+      tipo_empresa: item.tipo_empresa ?? '',
 
+      active: item.active ? 1 : 0,
+
+      // guardamos todo por si luego se edita
       raw: parsed
     }
   })
 }
 
 export const deleteCompany = async (id) => {
-  return axios.delete(`${API}configs?id=${id}`)
+  return axios.delete(`${API}company?id=${id}`)
 }
 //ACTIVE INACTIVE
 // UPDATE
 export const toggleCompany = async (id, company) => {
-  const { data } = await axios.put(`${API}configs?id=${id}&active=${company.active}`, {
+  const { data } = await axios.patch(`${API}company/active?id=${id}&active=${company.active}`, {
     data: company,
   })
 
@@ -74,7 +87,7 @@ export const toggleCompany = async (id, company) => {
 
 //DASHBOARD
 export const fetchDashboard = async () => {
-  const res = await axios.get(`${API}/dashboard`)
+  const res = await axios.get(`${API}dashboard`)
   
   if (res.status !== 200) return []
 
@@ -87,13 +100,13 @@ export const fetchDashboard = async () => {
 }
 
 export const fetchCompanyById = async (id) => {
-  const res = await axios.get(`/api-worker/configs?id=${id}`)
-  if(res.status !== 200) return []
-  const parsed = JSON.parse(res.data.result.data)
+  const res = await axios.get(`${API}company?id=${id}`)
+  if(res.status !== 200) return null
+  const data = res.data.data
 
   return {
-    id: res.data.result.id,
-    ...parsed,
-    active: res.data.active
+    id: data.id,
+    ...data,
+    active: data.active
   }
 }

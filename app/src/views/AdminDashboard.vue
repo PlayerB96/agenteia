@@ -16,7 +16,6 @@
   import AdminSidebar from "../components/AdminSidebar.vue";
   import StatsGrid from "../components/StatsGrid.vue";
   import CompanyList from "../components/CompanyList.vue";
-  import CompanyModal from "../components/CompanyForm.vue";
   import { fetchCompanies, createCompany, updateCompany, deleteCompany, toggleCompany, fetchDashboard } from '../services/companyService'
   import Swal from 'sweetalert2'
 
@@ -46,7 +45,7 @@
   
   onMounted(() => {
     loadCompanies()
-    loadStats()
+    //loadStats()
   })
 
   const openModal = (company = null) => {
@@ -60,47 +59,11 @@
   };
 
   const saving = ref(false)
-  const saveCompany = async (companyData) => {
-    if (saving.value) return
-    try {
-      saving.value = true
-      let savedCompany
-
-      if (companyData.id) {
-        // ✏️ UPDATE
-        savedCompany = await updateCompany(companyData.id, companyData)
-      } else {
-        // ➕ CREATE
-        savedCompany = await createCompany(companyData)
-      }
-      
-      closeModal();
-      await loadCompanies()
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Guardado',
-        text: 'La empresa fue guardada correctamente',
-        timer: 1500,
-        showConfirmButton: false
-      })
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message,
-        timer: 1500,
-        showConfirmButton: false
-      })
-    } finally {
-      saving.value = false
-    }
-  }
 
   const removeCompany = async (company) => {
     const confirm = await Swal.fire({
       title: '¿Eliminar empresa?',
-      text: `Se eliminará "${company.name}"`,
+      text: `Se eliminará "${company.razonsocial}"`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -209,13 +172,5 @@
       @toggle-active="toggleCompanyActive" 
       />
     </main>
-
-    <CompanyModal
-      v-if="showModal"
-      :company="selectedCompany"
-      :saving="saving"
-      @close="closeModal"
-      @save="saveCompany"
-    />
   </div>
 </template>

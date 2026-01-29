@@ -18,6 +18,7 @@ import { ClipboardList,
 import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
 import StatsAgent from './StatsAgent.vue'
+import Swal from 'sweetalert2'
 
 const props = defineProps({
   company: Object,
@@ -28,15 +29,14 @@ const activeTab = ref('marketing')
 
 const getEmptyModalData = () => ({
   id: null,
-  name: '',
-  domain: '',
-  active: true,
-  database: {
-    host: '',
-    port: '3306',
-    name: '',
-    user: ''
-  },
+  ruc: '',
+  razonsocial: '',
+  nombre_comercial: '',
+  actividad_economica: '',
+  representante_legal: '',
+  tipo_empresa: '',
+
+  active: 1,
   options: {
     max_tokens: '',
   },
@@ -148,11 +148,6 @@ watch(() => props.company, (newCompany) => {
     
     if (!data.featureCategories) {
       data.featureCategories = empty.featureCategories
-      
-      // Ensure database structure exists
-      if (!data.database) {
-        data.database = empty.database
-      }
 
       // Ensure options structure exists
       if (!data.options) {
@@ -203,11 +198,6 @@ watch(() => props.company, (newCompany) => {
           }
         })
       }
-    } else {
-       // Merge with empty to ensure all new fields prevent undefined errors if schema changed
-       if (!data.database) {
-          data.database = empty.database
-       }
     }
 
     modalData.value = data
@@ -224,17 +214,26 @@ const updateSubcategory = (category, subcategory, field, value) => {
   }
 }
 const handleSave = () => {
+  if (!modalData.value.ruc || !modalData.value.razonsocial || !modalData.value.actividad_economica || !modalData.value.representante_legal || !modalData.value.tipo_empresa) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Error',
+      text: 'Por favor, complete todos los campos obligatorios.'
+    })
+    return
+  }
   emit('save', {
     id: modalData.value.id ?? null,
-    name: modalData.value.name,
-    domain: modalData.value.domain,
+
+    // datos reales de empresa
+    ruc: String(modalData.value.ruc).trim(),
+    razonsocial: modalData.value.razonsocial,
+    nombre_comercial: modalData.value.nombre_comercial,
+    actividad_economica: modalData.value.actividad_economica,
+    representante_legal: modalData.value.representante_legal,
+    tipo_empresa: modalData.value.tipo_empresa,
+
     active: true,
-    database: {
-      host: modalData.value.database.host,
-      port: modalData.value.database.port,
-      name: modalData.value.database.name,
-      user: modalData.value.database.user
-    },
     options: {
       max_tokens: modalData.value.options.max_tokens,
       timeout: modalData.value.options.timeout,
@@ -299,50 +298,62 @@ const statsAgent = ref(getStatsAgent())
             <ClipboardList class="w-4 h-4 md:w-5 md:h-5" />
             Información General
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Nombre de la Empresa</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Ruc de la Empresa</label>
+              <input 
+                type="number" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.ruc"
+                placeholder="Ej: 1234567890"
+                inputmode="numeric"
+                max-length="11"
+              >
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Razon Social de la Empresa</label>
               <input 
                 type="text" 
-                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-200" 
-                v-model="modalData.name"
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.razonsocial"
                 placeholder="Ej: Tech Solutions Inc."
               >
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Dominio</label>
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Nombre Comercial de la Empresa</label>
               <input 
                 type="text" 
-                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-200" 
-                v-model="modalData.domain"
-                placeholder="Ej: techsolutions.com"
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.nombre_comercial"
+                placeholder="Ej: Tech Solutions"
               >
             </div>
-          </div>
-        </div>
-
-        <!-- Base de Datos -->
-        <div class="space-y-3 md:space-y-4">
-          <h3 class="text-base md:text-lg font-semibold text-indigo-400 flex items-center gap-2">
-            <Database class="w-4 h-4 md:w-5 md:h-5" />
-            Base de Datos
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Host</label>
-              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.host" placeholder="localhost">
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Actividad Economica de la Empresa</label>
+              <input 
+                type="text" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.actividad_economica"
+                placeholder="Ej: Desarrollo de Software"
+              >
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Puerto</label>
-              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.port" placeholder="3306">
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Representante Legal</label>
+              <input 
+                type="text" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.representante_legal"
+                placeholder="Ej: Juan Perez"
+              >
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Nombre BD</label>
-              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.name" placeholder="db_name">
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-300">Usuario</label>
-              <input type="text" class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-200" v-model="modalData.database.user" placeholder="root">
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-300">Tipo de Empresa</label>
+              <input 
+                type="text" 
+                class="w-full bg-700 border border-600 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-200" 
+                v-model="modalData.tipo_empresa"
+                placeholder="Ej: S.A."
+              >
             </div>
           </div>
         </div>

@@ -93,8 +93,8 @@ const goEdit = (id) => {
           >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
-                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.name }}</h3>
-                <p class="text-200 text-sm">{{ company.domain }}</p>
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.razonsocial }}</h3>
+                <p class="text-200 text-sm">{{ company.actividad_economica }}</p>
               </div>
               <span 
                 :class="[
@@ -140,8 +140,8 @@ const goEdit = (id) => {
         >
             <div class="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
               <div class="flex-1">
-                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.name }}</h3>
-                <p class="text-200 text-sm">{{ company.domain }}</p>
+                <h3 class="text-lg md:text-xl font-semibold mb-1 group-hover:text-indigo-400 text-200">{{ company.razonsocial }}</h3>
+                <p class="text-200 text-sm">{{ company.actividad_economica }}</p>
               </div>
               <span 
                 :class="[
