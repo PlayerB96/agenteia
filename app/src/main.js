@@ -3,9 +3,14 @@ import { createApp, ref, watch } from 'vue'
 import './style.css'
 import App from './App.vue'
 import router from './router'
+
+import CompanySidebar from './components/CompanySidebar.vue'
 import './assets/tailwind.css'
 
 const app = createApp(App)
+
+// Registrar CompanySidebar globalmente
+app.component('CompanySidebar', CompanySidebar)
 
 // 🌗 Tema global
 const theme = ref(localStorage.getItem('theme') || 'dark')

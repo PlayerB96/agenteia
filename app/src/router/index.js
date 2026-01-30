@@ -1,3 +1,4 @@
+// ...existing code...
 import { createRouter, createWebHistory } from 'vue-router'
 import { watch } from 'vue'
 import { authGuard } from '@auth0/auth0-vue'
@@ -13,6 +14,12 @@ import Callback from '../views/Callback.vue'
 import Onboarding from '../views/Onboarding.vue'
 
 const routes = [
+  {
+    path: '/company/chat',
+    name: 'AgentChatSelect',
+    component: () => import('../views/AgentChatView.vue'),
+    meta: { requiresAuth: true, role: 'company_admin' }
+  },
   {
     path: '/',
     redirect: '/login'

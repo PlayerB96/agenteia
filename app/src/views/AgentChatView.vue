@@ -1,103 +1,211 @@
 <template>
-  <div class="min-h-screen bg-900 text-100 font-sans flex">
-    <CompanySidebar :current-view="'agents'" :mobile-open="false" class="hidden md:block" />
-    <div class="flex-1 flex flex-col min-h-screen">
-      <AgentHeader />
-      <main class="flex-1 flex flex-col md:flex-row gap-6 p-0 md:p-8 h-full min-h-0">
-        <!-- Chat principal -->
-        <section class="flex-1 flex flex-col items-center justify-center h-full min-h-0">
-          <div :class="['w-full max-w-4xl bg-800 border border-700 rounded-xl flex flex-col gap-4 min-h-[400px] h-full', maximized ? 'fixed inset-0 z-50 m-0 rounded-none max-w-none p-4 md:p-10' : 'p-4 md:p-8']" style="height:100%">
-            <div class="flex-1 flex flex-col justify-end">
-              <div class="overflow-y-auto max-h-[400px] mb-4 custom-scrollbar bg-700/10 rounded-lg p-2 transition-colors" :class="maximized ? 'max-h-none min-h-[60vh]' : ''">
-                <div v-for="(msg, i) in history" :key="i" class="mb-2 flex" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                  <div class="flex items-end gap-2" :class="msg.role === 'user' ? 'flex-row-reverse' : ''">
-                    <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400 dark:text-indigo-600" />
-                    <span class="inline-block px-3 py-2 rounded-lg text-sm font-medium shadow-md"
-                      :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
+  <div class="h-dvh bg-900 text-100 font-sans flex overflow-hidden">
+
+    <!-- Mobile Menu Button -->
+    <button @click="toggleMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-800 border border-700 rounded-lg text-white hover:bg-700 transition-colors">
+      <span v-if="!mobileMenuOpen">☰</span>
+      <span v-else>✕</span>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div v-if="mobileMenuOpen" class="lg:hidden fixed inset-0 bg-black/50 z-30" @click="mobileMenuOpen = false" />
+
+    <!-- Sidebar -->
+    <CompanySidebar v-if="!maximized" :current-view="currentView" :mobile-open="mobileMenuOpen"
+      :current-subtab="currentSubtab" @update:current-view="currentView = $event; mobileMenuOpen = false"
+      @update:current-subtab="currentSubtab = $event" />
+
+
+    <!-- Main -->
+    <div :class="[
+      'flex-1 flex flex-col min-h-0 transition-all',
+      maximized ? 'p-0' : 'p-4 md:p-6 lg:p-8'
+    ]">
+      <AgentHeader v-if="!maximized" />
+
+      <!-- Selector agente -->
+      <div class="mb-4">
+        <template v-if="agentName && agentName !== 'chat'">
+          <span class="inline-block bg-indigo-700/30 text-indigo-200 px-4 py-2 rounded-lg font-bold text-lg">
+            Chat de agente: {{ agentName.replace(/_/g, ' ') }}
+          </span>
+        </template>
+
+        <template v-else>
+          <div
+            class="inline-flex flex-wrap items-center gap-2 bg-indigo-700/30 text-indigo-200 px-4 py-2 rounded-lg font-bold">
+            <label class="mr-2">Selecciona agente:</label>
+            <select v-model="selectedAgent" class="bg-700 border border-600 rounded px-2 py-1">
+              <option v-for="agent in agents" :key="agent.name" :value="agent.name">
+                {{ agent.name }}
+              </option>
+            </select>
+            <button @click="goToAgentChat"
+              class="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+              Ir al chat
+            </button>
+          </div>
+        </template>
+      </div>
+
+      <!-- Chat + Aside -->
+      <main v-if="agentName && agentName !== 'chat'" class="flex-1 min-h-0 flex flex-col md:flex-row gap-6">
+
+        <!-- Chat -->
+        <section class="flex-1 min-h-0 flex">
+          <div ref="chatContainer" :class="[
+            'relative flex flex-col bg-800 border border-700 transition-all duration-300',
+            maximized
+              ? 'fixed inset-0 z-[9999] rounded-none w-screen h-screen'
+              : 'w-full max-w mx-auto rounded-xl p-4 md:p-8'
+          ]">
+
+
+            <!-- Botón Maximizar -->
+            <button @click="toggleMaximize"
+              class="absolute top-3 right-3 z-20 p-2 rounded-lg bg-700 hover:bg-600 transition">
+              <component :is="maximized ? Minimize : Maximize2" class="w-5 h-5" />
+            </button>
+
+            <!-- Opciones superiores -->
+            <div v-if="maximized" class="mb-4 bg-900 border border-700 rounded-lg">
+              <button @click="showOptions = !showOptions"
+                class="w-full flex items-center justify-between px-4 py-2 font-semibold hover:bg-800">
+                Opciones de {{ agentName.replace(/_/g, ' ') }}
+                <span>{{ showOptions ? '▲' : '▼' }}</span>
+              </button>
+
+              <div v-if="showOptions" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 class="font-semibold mb-2">Últimos mensajes</h3>
+                  <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-thin">
+                    <li v-for="(msg, i) in lastChats" :key="i" class="flex gap-1">
+                      <component :is="msg.role === 'user' ? User : Bot" class="w-3 h-3" />
+                      <span class="font-bold">{{ msg.role }}:</span>
                       {{ msg.text }}
-                    </span>
-                  </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 class="font-semibold mb-2">Pasos</h3>
+                  <ul class="text-xs space-y-1">
+                    <li v-for="(step, i) in steps" :key="i">{{ step }}</li>
+                  </ul>
                 </div>
               </div>
-              <form @submit.prevent="sendMessage" class="flex gap-2 mt-2">
-                <input v-model="input" type="text" class="flex-1 bg-700 border border-600 rounded-lg px-4 py-2.5 text-200 focus:outline-none" placeholder="Escribe tu mensaje..." />
-                <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg font-semibold flex items-center gap-1">
-                  <Send class="w-4 h-4" /> Enviar
-                </button>
-              </form>
-              <div class="mt-4 flex gap-2">
-                <button class="flex items-center gap-2 px-3 py-2 bg-700 text-200 rounded hover:bg-indigo-500/10 transition-colors" @click="clearHistory">
-                  <Sparkles class="w-5 h-5" />
-                  <span>Nuevo Chat</span>
-                </button>
+            </div>
+
+            <!-- Mensajes -->
+            <div class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin">
+              <div v-for="(msg, i) in history" :key="i" class="mb-2 flex"
+                :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+                <div class="flex items-end gap-2" :class="msg.role === 'user' && 'flex-row-reverse'">
+                  <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
+                  <span class="px-3 py-2 rounded-lg text-sm shadow"
+                    :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
+                    {{ msg.text }}
+                  </span>
+                </div>
               </div>
             </div>
+
+            <!-- Input -->
+            <form @submit.prevent="sendMessage" class="flex gap-2 m-4">
+              <input v-model="input" placeholder="Escribe tu mensaje…"
+                class="flex-1 bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none" />
+              <button class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
+                <Send class="w-4 h-4" /> Enviar
+              </button>
+            </form>
+
+            <!-- Acciones -->
+            <button @click="clearHistory"
+              class="mt-4 inline-flex items-center gap-2 px-3 py-2 bg-700 rounded hover:bg-indigo-500/10">
+              <Sparkles class="w-5 h-5" /> Nuevo Chat
+            </button>
+
           </div>
         </section>
-        <!-- Panel derecho: info agente -->
-        <aside class="w-full md:w-[440px] min-w-0 max-w-full md:min-w-[340px] md:max-w-md bg-800 border border-700 rounded-xl p-4 md:p-8 flex flex-col gap-8 h-full min-h-0">
+
+        <!-- Aside -->
+        <aside v-if="!maximized"
+          class="w-full md:w-[420px] bg-800 border border-700 rounded-xl p-4 md:p-8 flex flex-col gap-8">
           <div>
-            <h2 class="text-lg font-bold mb-4">Opciones de {{ agentName.replace(/_/g, ' ') }}</h2>
-            <ul class="space-y-2">
-              <li>
-                <span class="font-semibold text-100">Ver últimos 5 chats:</span>
-                <ul class="pl-2 mt-1 space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
-                  <li v-for="(msg, i) in lastChats" :key="i" class="text-xs text-400 flex items-center gap-1">
-                    <component :is="msg.role === 'user' ? User : Bot" class="w-3.5 h-3.5" />
-                    <span class="font-bold text-100">{{ msg.role }}:</span> {{ msg.text }}
-                  </li>
-                </ul>
+            <h2 class="font-bold mb-4">Opciones de {{ agentName.replace(/_/g, ' ') }}</h2>
+            <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-thin">
+              <li v-for="(msg, i) in lastChats" :key="i" class="flex gap-1">
+                <component :is="msg.role === 'user' ? User : Bot" class="w-3 h-3" />
+                <span class="font-bold">{{ msg.role }}:</span>
+                {{ msg.text }}
               </li>
             </ul>
           </div>
+
           <div>
-            <h3 class="font-semibold mb-2">Pasos de la última acción</h3>
-            <ul class="space-y-1">
-              <li v-for="(step, i) in steps" :key="i" class="text-xs text-500">
-                {{ step }}
-              </li>
+            <h3 class="font-semibold mb-2">Pasos</h3>
+            <ul class="text-xs space-y-1">
+              <li v-for="(step, i) in steps" :key="i">{{ step }}</li>
             </ul>
           </div>
         </aside>
+
       </main>
     </div>
-    <!-- Sidebar mobile -->
-    <CompanySidebar :current-view="'agents'" :mobile-open="true" class="block md:hidden fixed z-50 top-0 left-0 h-full w-64" />
   </div>
 </template>
 
-
-
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import CompanySidebar from '../components/CompanySidebar.vue'
 import AgentHeader from '../components/AgentHeader.vue'
+import CompanySidebar from '../components/CompanySidebar.vue'
 import { Bot, User, Send, Maximize2, Minimize, Sparkles } from 'lucide-vue-next'
-
+import { mockAgents } from '../data/mockAgents.js'
 
 const route = useRoute()
 const agentName = route.params.agentName
+
+const agents = ref(mockAgents)
+const selectedAgent = ref(agents.value[0]?.name || '')
 const input = ref('')
+
 const history = ref([
   { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }
 ])
-const lastChats = computed(() => history.value.slice(-5));
+
+const lastChats = computed(() => history.value.slice(-5))
+
 const steps = ref([
   'Recibido mensaje',
   'Procesando intención',
   'Generando respuesta',
   'Enviando respuesta'
 ])
+
 const maximized = ref(false)
+const showOptions = ref(true)
+
+const currentView = ref('agents')
+const currentSubtab = ref('chat-agente')
+const mobileMenuOpen = ref(false)
+
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
 function toggleMaximize() {
   maximized.value = !maximized.value
 }
 
+watch(maximized, (val) => {
+  document.body.style.overflow = val ? 'hidden' : ''
+})
+
 function sendMessage() {
   if (!input.value.trim()) return
   history.value.push({ role: 'user', text: input.value })
-  // Simulación de respuesta del agente
   setTimeout(() => {
     history.value.push({ role: 'agent', text: 'Respuesta simulada de ' + agentName })
   }, 700)
@@ -108,60 +216,10 @@ function clearHistory() {
   history.value = [{ role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }]
   input.value = ''
 }
+
+function goToAgentChat() {
+  if (!selectedAgent.value) return
+  const agentParam = selectedAgent.value.replace(/\s+/g, '_')
+  window.location.href = `/company/${agentParam}`
+}
 </script>
-
-<style scoped>
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #6366f1 #23272f;
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  background: #23272f;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #6366f1;
-  border-radius: 6px;
-}
-@media (prefers-color-scheme: dark) {
-  .custom-scrollbar {
-    scrollbar-color: #818cf8 #e5e7eb;
-  }
-  .custom-scrollbar::-webkit-scrollbar {
-    background: #e5e7eb;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #818cf8;
-  }
-}
-
-.flex-1 > main {
-  min-height: 0;
-}
-main {
-  height: 100%;
-  min-height: 0;
-}
-section, aside {
-  min-height: 0;
-  height: 100%;
-}
-@media (max-width: 768px) {
-  main {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0.5rem;
-  }
-  aside {
-    margin-top: 1rem;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    padding: 1rem;
-  }
-  section {
-    margin-bottom: 0;
-    padding: 0;
-  }
-}
-</style>

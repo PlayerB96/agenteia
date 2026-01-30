@@ -2,7 +2,6 @@
 import { ref, computed } from "vue";
 import { Menu, X, LogOut, Users, Settings, MoonStar, Sun } from "lucide-vue-next";
 import { useAuth } from "../utils/useAuth";
-import CompanySidebar from "../components/CompanySidebar.vue";
 import AgentConfig from "../components/AgentConfig.vue";
 import CompanyStats from "../components/CompanyStats.vue";
 import { mockAgents } from "../data/mockAgents.js";
@@ -10,6 +9,7 @@ import { inject } from 'vue'
 
 const { user, logout } = useAuth();
 const currentView = ref("agents");
+const currentSubtab = ref("chat-agente");
 const mobileMenuOpen = ref(false);
 const agents = ref(mockAgents);
 const theme = inject('theme')
@@ -54,10 +54,12 @@ const handleLogout = () => {
     <CompanySidebar
       :current-view="currentView"
       :mobile-open="mobileMenuOpen"
+      :current-subtab="currentSubtab"
       @update:current-view="
         currentView = $event;
         mobileMenuOpen = false;
       "
+      @update:current-subtab="currentSubtab = $event"
     />
 
     <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto pt-16 lg:pt-8">

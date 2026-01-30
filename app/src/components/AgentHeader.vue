@@ -1,5 +1,5 @@
 <template>
-  <header class="mb-6 md:mb-8 flex justify-between items-start agent-header">
+  <header class="mb-2 md:mb-2 flex justify-between items-start agent-header">
     <div>
       <h1 class="text-2xl md:text-3xl font-bold mb-2">
         Dashboard Empresarial
