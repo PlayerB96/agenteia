@@ -114,7 +114,23 @@
                 <span>El agente está escribiendo…</span>
               </div>
             </div>
-
+            <!-- Acciones rápidas -->
+            <div
+              v-if="showQuickActions"
+              class="flex flex-wrap justify-center gap-2"
+            >
+              <button
+                v-for="action in quickActions"
+                :key="action.id"
+                @click="runQuickAction(action)"
+                class="flex items-center gap-2 px-3 py-2 rounded-full
+                      bg-700 hover:bg-indigo-500/20
+                      border border-600 text-sm"
+              >
+                <component :is="action.icon" class="w-4 h-4 text-indigo-400" />
+                {{ action.label }}
+              </button>
+            </div>
             <!-- Input -->
             <form @submit.prevent="sendMessage" class="flex gap-2 m-4">
               <input v-model="input" placeholder="Escribe tu mensaje…" :disabled="isProcessing"
@@ -127,7 +143,7 @@
             <!-- Acciones -->
             <button @click="clearHistory"
               class="mt-4 inline-flex items-center gap-2 px-3 py-2 bg-700 rounded hover:bg-indigo-500/10">
-              <Sparkles class="w-5 h-5" /> Nuevo Chat
+              <MessageCircle class="w-4 h-4 text-indigo-400"/> Nuevo Chat
             </button>
 
           </div>
@@ -184,11 +200,32 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AgentHeader from '../components/AgentHeader.vue'
 import CompanySidebar from '../components/CompanySidebar.vue'
-import { Bot, User, Send, Maximize2, Minimize, Sparkles } from 'lucide-vue-next'
+import { Bot, User, Send, Maximize2, Minimize, MessageCircle } from 'lucide-vue-next'
 import { mockAgents } from '../data/mockAgents.js'
 import { useAgentSocket } from '../services/Company/useAgentSocket.js'
 import { MockAgentSocket } from '../services/Company/agentSocket.mock.js'
 import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
+import { FileText, FilePlus } from 'lucide-vue-next'
+import Swal from 'sweetalert2'
+
+const quickActions = ref([
+  {
+    id: 'documentar',
+    label: 'Documentar',
+    icon: FileText,
+    payload: 'Documentar'
+  },
+  {
+    id: 'generar',
+    label: 'Generar documento',
+    icon: FilePlus,
+    payload: 'Generar documento'
+  }
+])
+
+const showQuickActions = computed(() =>
+  !isProcessing.value
+)
 
 const stepIcon = (status) => {
   if (status === 'pending') return Clock
@@ -269,6 +306,13 @@ watch(
         steps.value[4].status = 'done'
         currentStep.value = 5
       }, 1900)
+
+      //regresar todo a pending
+      setTimeout(() => {
+        steps.value.forEach(s => s.status = 'pending')
+        currentStep.value = 0
+        showOptions.value = true
+      }, 5000)
     }
 
     newMessages.forEach(msg => {
@@ -287,7 +331,14 @@ function startProcessingSteps() {
 function sendMessage() {
   if(isProcessing.value) return
   const text = input.value.trim()
-  if (!text) return
+  if (!text){
+    Swal.fire({
+      icon: 'warning',
+      title: 'Error',
+      text: 'Por favor, ingresa un mensaje.'
+    })
+    return
+  }
 
   history.value.push({
     role: 'user',
@@ -311,4 +362,14 @@ function goToAgentChat() {
   const agentParam = selectedAgent.value.replace(/\s+/g, '_')
   window.location.href = `/company/${agentParam}`
 }
+
+function runQuickAction(action) {
+  history.value.push({
+    role: 'user',
+    text: action.payload
+  })
+
+  sendToSocket(action.payload)
+}
+
 </script>
