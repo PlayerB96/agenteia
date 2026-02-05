@@ -1,9 +1,9 @@
 <template>
-  <div class="h-dvh bg-900 text-100 font-sans flex overflow-hidden">
+  <div class="flex min-h-screen font-sans bg-900 text-100">
 
     <!-- Mobile Menu Button -->
     <button @click="toggleMobileMenu"
-      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-800 border border-700 rounded-lg text-white hover:bg-700 transition-colors">
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-800 border border-700 rounded-lg text-white hover:bg-700">
       <span v-if="!mobileMenuOpen">☰</span>
       <span v-else>✕</span>
     </button>
@@ -18,31 +18,31 @@
 
 
     <!-- Main -->
-    <div :class="[
-      'flex-1 flex flex-col min-h-0 transition-all',
-      maximized ? 'p-0' : 'p-4 md:p-6 lg:p-8'
+    <main :class="[
+      maximized ? 'lg:p-0 pt-16' : 'flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto pt-16 lg:pt-8'
     ]">
       <AgentHeader v-if="!maximized" />
 
       <!-- Selector agente -->
       <div class="mb-4">
         <template v-if="agentName && agentName !== 'chat'">
-          <span class="inline-block bg-indigo-700/30 text-indigo-200 px-4 py-2 rounded-lg font-bold text-lg">
+          <span class="inline-block bg-700 text-200 px-4 py-2 rounded-lg font-bold text-lg">
             Chat de agente: {{ agentName.replace(/_/g, ' ') }}
+            {{ connected ? '🟢' : '🔴' }}
           </span>
         </template>
 
         <template v-else>
           <div
-            class="inline-flex flex-wrap items-center gap-2 bg-indigo-700/30 text-indigo-200 px-4 py-2 rounded-lg font-bold">
-            <label class="mr-2">Selecciona agente:</label>
+            class="inline-flex flex-wrap items-center gap-2 bg-700 text-200 px-4 py-2 rounded-lg font-bold">
+            <label class="mr-2 text-200">Selecciona agente:</label>
             <select v-model="selectedAgent" class="bg-700 border border-600 rounded px-2 py-1">
               <option v-for="agent in agents" :key="agent.name" :value="agent.name">
                 {{ agent.name }}
               </option>
             </select>
             <button @click="goToAgentChat"
-              class="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+              class="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
               Ir al chat
             </button>
           </div>
@@ -51,20 +51,20 @@
 
       <!-- Chat + Aside -->
       <main v-if="agentName && agentName !== 'chat'" class="flex-1 min-h-0 flex flex-col md:flex-row gap-6">
-
         <!-- Chat -->
         <section class="flex-1 min-h-0 flex">
           <div ref="chatContainer" :class="[
-            'relative flex flex-col bg-800 border border-700 transition-all duration-300',
+            'relative flex flex-col bg-800 border border-700',
             maximized
               ? 'fixed inset-0 z-[9999] rounded-none w-screen h-screen'
               : 'w-full max-w mx-auto rounded-xl p-4 md:p-8'
-          ]">
+          ]" :style="maximized ? { width: '99vw', height: '99vh' } : {}"
+          >
 
 
             <!-- Botón Maximizar -->
             <button @click="toggleMaximize"
-              class="absolute top-3 right-3 z-20 p-2 rounded-lg bg-700 hover:bg-600 transition">
+              class="absolute top-3 right-3 z-20 p-2 rounded-lg bg-700 hover:bg-600">
               <component :is="maximized ? Minimize : Maximize2" class="w-5 h-5" />
             </button>
 
@@ -91,7 +91,7 @@
                 <div>
                   <h3 class="font-semibold mb-2">Pasos</h3>
                   <ul class="text-xs space-y-1">
-                    <li v-for="(step, i) in steps" :key="i">{{ step }}</li>
+                    <li v-for="(step, i) in steps" :key="i">{{ step.label }}</li>
                   </ul>
                 </div>
               </div>
@@ -109,14 +109,18 @@
                   </span>
                 </div>
               </div>
+              <div v-if="isProcessing" class="flex items-center gap-2 text-sm text-400 px-2">
+                <Bot class="w-4 h-4 animate-pulse" />
+                <span>El agente está escribiendo…</span>
+              </div>
             </div>
 
             <!-- Input -->
             <form @submit.prevent="sendMessage" class="flex gap-2 m-4">
-              <input v-model="input" placeholder="Escribe tu mensaje…"
+              <input v-model="input" placeholder="Escribe tu mensaje…" :disabled="isProcessing"
                 class="flex-1 bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none" />
-              <button class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
-                <Send class="w-4 h-4" /> Enviar
+              <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
+                <Send class="w-4 h-4" /> <div class="hidden sm:inline">Enviar</div>
               </button>
             </form>
 
@@ -145,31 +149,61 @@
 
           <div>
             <h3 class="font-semibold mb-2">Pasos</h3>
-            <ul class="text-xs space-y-1">
-              <li v-for="(step, i) in steps" :key="i">{{ step }}</li>
+            <ul class="text-xs space-y-2">
+              <li v-for="step in steps" :key="step.id" class="flex items-center gap-2">
+                <component
+                  :is="stepIcon(step.status)"
+                  class="w-4 h-4"
+                  :class="{
+                    'text-gray-500': step.status === 'pending',
+                    'text-yellow-400 animate-spin': step.status === 'active',
+                    'text-green-500': step.status === 'done'
+                  }"
+                />
+                <span
+                  :class="{
+                    'text-300': step.status === 'pending',
+                    'text-100 font-semibold': step.status === 'active',
+                    'text-green-400': step.status === 'done'
+                  }"
+                >
+                  {{ step.label }}
+                </span>
+              </li>
             </ul>
           </div>
         </aside>
 
       </main>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AgentHeader from '../components/AgentHeader.vue'
 import CompanySidebar from '../components/CompanySidebar.vue'
 import { Bot, User, Send, Maximize2, Minimize, Sparkles } from 'lucide-vue-next'
 import { mockAgents } from '../data/mockAgents.js'
+import { useAgentSocket } from '../services/Company/useAgentSocket.js'
+import { MockAgentSocket } from '../services/Company/agentSocket.mock.js'
+import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
 
+const stepIcon = (status) => {
+  if (status === 'pending') return Clock
+  if (status === 'active') return Loader2
+  if (status === 'done') return CheckCircle
+}
+
+const { connected, messages, isProcessing, sendMessage: sendToSocket } = useAgentSocket()
 const route = useRoute()
 const agentName = route.params.agentName
 
 const agents = ref(mockAgents)
 const selectedAgent = ref(agents.value[0]?.name || '')
 const input = ref('')
+const currentStep = ref(0)
 
 const history = ref([
   { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }
@@ -178,11 +212,13 @@ const history = ref([
 const lastChats = computed(() => history.value.slice(-5))
 
 const steps = ref([
-  'Recibido mensaje',
-  'Procesando intención',
-  'Generando respuesta',
-  'Enviando respuesta'
+  { id: 1, label: 'Recibiendo mensaje', status: 'pending' },
+  { id: 2, label: 'Analizando intención', status: 'pending' },
+  { id: 3, label: 'Procesando información', status: 'pending' },
+  { id: 4, label: 'Generando respuesta', status: 'pending' },
+  { id: 5, label: 'Respuesta enviada', status: 'pending' }
 ])
+
 
 const maximized = ref(false)
 const showOptions = ref(true)
@@ -199,22 +235,75 @@ function toggleMaximize() {
   maximized.value = !maximized.value
 }
 
-watch(maximized, (val) => {
-  document.body.style.overflow = val ? 'hidden' : ''
-})
+watch(
+  () => [maximized.value, isProcessing.value, messages.value],
+  ([maximizedVal, isProcessingVal, newMessages]) => {
+    document.body.style.overflowX = maximizedVal ? 'hidden' : 'auto'
+    showOptions.value = false
+
+
+    if (isProcessingVal) {
+      currentStep.value = 0
+
+      setTimeout(() => {
+        steps.value[0].status = 'done'
+        steps.value[1].status = 'active'
+      }, 300)
+
+      setTimeout(() => {
+        steps.value[1].status = 'done'
+        steps.value[2].status = 'active'
+      }, 700)
+
+      setTimeout(() => {
+        steps.value[2].status = 'done'
+        steps.value[3].status = 'active'
+      }, 1100)
+
+      setTimeout(() => {
+        steps.value[3].status = 'done'
+        steps.value[4].status = 'active'
+      }, 1500)
+
+      setTimeout(() => {
+        steps.value[4].status = 'done'
+        currentStep.value = 5
+      }, 1900)
+    }
+
+    newMessages.forEach(msg => {
+      history.value.push(msg)
+    })
+
+    messages.value.length = 0 // limpiamos el buffer
+  }
+)
+
+function startProcessingSteps() {
+  steps.value.forEach(s => s.status = 'pending')
+  steps.value[0].status = 'pending'
+}
 
 function sendMessage() {
-  if (!input.value.trim()) return
-  history.value.push({ role: 'user', text: input.value })
-  setTimeout(() => {
-    history.value.push({ role: 'agent', text: 'Respuesta simulada de ' + agentName })
-  }, 700)
+  if(isProcessing.value) return
+  const text = input.value.trim()
+  if (!text) return
+
+  history.value.push({
+    role: 'user',
+    text: text
+  })
+
+  startProcessingSteps()
+  sendToSocket(text)
+
   input.value = ''
 }
 
 function clearHistory() {
   history.value = [{ role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }]
   input.value = ''
+  steps.value.forEach(s => s.status = 'pending')
 }
 
 function goToAgentChat() {

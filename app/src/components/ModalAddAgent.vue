@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref, watch } from "vue";
-import { X, ClipboardList } from "lucide-vue-next";
+import { X, ClipboardList, Loader} from "lucide-vue-next";
 
 const props = defineProps({
   modelValue: {
@@ -63,21 +63,7 @@ watch(
         class="absolute inset-0 bg-black/60 backdrop-blur-sm
               z-50 flex flex-col items-center justify-center gap-4"
       >
-        <svg class="animate-spin h-10 w-10 text-indigo-400" viewBox="0 0 24 24">
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          />
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          />
-        </svg>
+        <Loader class="h-10 w-10 text-indigo-400 animate-spin" />
 
         <p class="text-sm text-slate-300 font-medium">
           Guardando agente…
@@ -129,27 +115,10 @@ watch(
           "
         >
           <!-- Spinner -->
-          <svg
+          <Loader
             v-if="saving"
             class="animate-spin h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            />
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            />
-          </svg>
+          />
 
           <!-- Texto -->
           <span>

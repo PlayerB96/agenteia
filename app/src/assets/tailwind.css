@@ -77,4 +77,12 @@
   .bg-emerald-400-ag{
     @apply bg-emerald-400 dark:bg-emerald-600;
   }
+  
+  .bg-emerald-600-ag{
+    @apply bg-emerald-600 dark:bg-emerald-400;
+  }
+
+  .bg-red-600-ag{
+    @apply bg-red-600 dark:bg-red-400;
+  }
 }
