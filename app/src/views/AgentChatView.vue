@@ -75,7 +75,7 @@
                 Opciones de {{ agentName.replace(/_/g, ' ') }}
                 <span>{{ showOptions ? '▲' : '▼' }}</span>
               </button>
-
+{{ showOptions }}
               <div v-if="showOptions" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 class="font-semibold mb-2">Últimos mensajes</h3>
@@ -276,7 +276,6 @@ watch(
   () => [maximized.value, isProcessing.value, messages.value],
   ([maximizedVal, isProcessingVal, newMessages]) => {
     document.body.style.overflowX = maximizedVal ? 'hidden' : 'auto'
-    showOptions.value = false
 
 
     if (isProcessingVal) {
@@ -311,7 +310,6 @@ watch(
       setTimeout(() => {
         steps.value.forEach(s => s.status = 'pending')
         currentStep.value = 0
-        showOptions.value = true
       }, 5000)
     }
 
