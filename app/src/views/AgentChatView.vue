@@ -1,3 +1,22 @@
+<style scoped>
+.chat-enter-active {
+  transition: all 0.75s ease;
+}
+
+.chat-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.chat-leave-active {
+  transition: all 0.5s ease;
+}
+
+.chat-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+</style>
 <template>
   <div class="flex min-h-screen font-sans bg-900 text-100">
 
@@ -90,25 +109,50 @@
 
                 <div>
                   <h3 class="font-semibold mb-2">Pasos</h3>
-                  <ul class="text-xs space-y-1">
-                    <li v-for="(step, i) in steps" :key="i">{{ step.label }}</li>
+                  <ul class="text-xs space-y-2">
+                    <li v-for="(step, i) in steps" :key="i" class="flex inline-center gap-2">
+                      <component
+                        :is="stepIcon(step.status)"
+                        class="w-4 h-4"
+                        :class="{
+                          'text-gray-500': step.status === 'pending',
+                          'text-yellow-400 animate-spin': step.status === 'active',
+                          'text-green-500': step.status === 'done'
+                        }"
+                      />
+                      <span
+                        :class="{
+                          'text-300': step.status === 'pending',
+                          'text-100 font-semibold': step.status === 'active',
+                          'text-green-400': step.status === 'done'
+                        }"
+                      >
+                        {{ step.label }}
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </div>
             </div>
 
             <!-- Mensajes -->
-            <div class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin">
-              <div v-for="(msg, i) in history" :key="i" class="mb-2 flex"
-                :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                <div class="flex items-end gap-2" :class="msg.role === 'user' && 'flex-row-reverse'">
-                  <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
-                  <span class="px-3 py-2 rounded-lg text-sm shadow"
-                    :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
-                    {{ msg.text }}
-                  </span>
+            <div ref="messagesContainer" class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin">
+              <TransitionGroup
+                name="chat"
+                tag="div"
+                class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin"
+              >
+                <div v-for="(msg, i) in history" :key="i" class="mb-2 flex"
+                  :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+                  <div class="flex items-end gap-2" :class="msg.role === 'user' && 'flex-row-reverse'">
+                    <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
+                    <span class="px-3 py-2 rounded-lg text-sm shadow"
+                      :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
+                      {{ msg.text }}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </TransitionGroup>
               <div v-if="isProcessing" class="flex items-center gap-2 text-sm text-400 px-2">
                 <Bot class="w-4 h-4 animate-pulse" />
                 <span>El agente está escribiendo…</span>
@@ -188,6 +232,31 @@
               </li>
             </ul>
           </div>
+          <!-- Chats recientes -->
+          <div class="flex-1">
+            <h3 class="font-semibold mb-2">Chats recientes</h3>
+
+            <ul class="space-y-2 text-sm">
+              <li
+                v-for="chat in chatHistory"
+                :key="chat.id"
+                @click="loadChat(chat)"
+                class="cursor-pointer p-2 rounded-lg
+                      bg-700 hover:bg-indigo-500/10"
+                :class="[
+                  chat.id === activeChatId
+                    ? 'bg-indigo-500/20 ring-1 ring-indigo-400'
+                    : 'bg-700 hover:bg-indigo-500/10'
+                ]"
+              >
+                <p class="font-medium truncate">{{ chat.title }}</p>
+                <p class="text-xs text-400 flex items-center gap-1">
+                  <MessageCircle class="w-3 h-3 text-indigo-400" />
+                  {{ new Date(chat.createdAt).toLocaleTimeString() }}
+                </p>
+              </li>
+            </ul>
+          </div>
         </aside>
 
       </main>
@@ -196,7 +265,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import AgentHeader from '../components/AgentHeader.vue'
 import CompanySidebar from '../components/CompanySidebar.vue'
@@ -204,6 +273,7 @@ import { Bot, User, Send, Maximize2, Minimize, MessageCircle } from 'lucide-vue-
 import { mockAgents } from '../data/mockAgents.js'
 import { useAgentSocket } from '../services/Company/useAgentSocket.js'
 import { MockAgentSocket } from '../services/Company/agentSocket.mock.js'
+import { startAgentMock } from '../services/Company/agent.service.mock.js'
 import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
 import { FileText, FilePlus } from 'lucide-vue-next'
 import Swal from 'sweetalert2'
@@ -245,6 +315,8 @@ const currentStep = ref(0)
 const history = ref([
   { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }
 ])
+const chatHistory = ref([])
+const activeChatId = ref(null)
 
 const lastChats = computed(() => history.value.slice(-5))
 
@@ -263,6 +335,8 @@ const showOptions = ref(true)
 const currentView = ref('agents')
 const currentSubtab = ref('chat-agente')
 const mobileMenuOpen = ref(false)
+
+const messagesContainer = ref(null)
 
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value
@@ -321,36 +395,78 @@ watch(
   }
 )
 
+watch(
+  () => history.value.length,
+  async () => {
+    await nextTick()
+    scrollToBottom()
+  }
+)
+
 function startProcessingSteps() {
   steps.value.forEach(s => s.status = 'pending')
   steps.value[0].status = 'pending'
 }
 
-function sendMessage() {
-  if(isProcessing.value) return
+async function sendMessage() {
+  if (isProcessing.value) return
+
   const text = input.value.trim()
-  if (!text){
-    Swal.fire({
-      icon: 'warning',
-      title: 'Error',
-      text: 'Por favor, ingresa un mensaje.'
-    })
-    return
-  }
+  if (!text) return
 
-  history.value.push({
-    role: 'user',
-    text: text
-  })
-
-  startProcessingSteps()
-  sendToSocket(text)
+  // Mostrar mensaje del usuario
+  history.value.push({ role: 'user', text })
 
   input.value = ''
+
+  try {
+    isProcessing.value = true
+
+    const res = await startAgentMock(text)
+
+    startProcessingSteps()
+
+    // recién aquí conectas / usas socket
+    sendToSocket(text)
+
+  } catch (err) {
+    isProcessing.value = false
+
+    history.value.push({
+      role: 'agent',
+      text: err.response?.data?.message || 'Ocurrió un error al iniciar el agente'
+    })
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: err.response?.data?.message || 'No se pudo procesar la solicitud'
+    })
+  }
 }
 
 function clearHistory() {
-  history.value = [{ role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }]
+  persistCurrentChat()
+  if (history.value.length > 1) {
+    if (!activeChatId.value){
+      const chatId = Date.now() 
+      chatHistory.value.unshift({
+        id: chatId,
+        title: getChatTitle(history.value),
+        messages: [...history.value],
+        createdAt: new Date()
+      })
+    }
+
+    // solo 3 recientes
+    chatHistory.value = chatHistory.value.slice(0, 3)
+  }
+
+  activeChatId.value = null
+  history.value = [
+    { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }
+  ]
+
   input.value = ''
   steps.value.forEach(s => s.status = 'pending')
 }
@@ -361,13 +477,47 @@ function goToAgentChat() {
   window.location.href = `/company/${agentParam}`
 }
 
-function runQuickAction(action) {
+async function runQuickAction(action) {
   history.value.push({
     role: 'user',
     text: action.payload
   })
 
   sendToSocket(action.payload)
+
+  await nextTick()
+  scrollToBottom(false)
+}
+
+function scrollToBottom(smooth = true) {
+  if (!messagesContainer.value) return
+
+  messagesContainer.value.scrollTo({
+    top: messagesContainer.value.scrollHeight,
+    behavior: smooth ? 'smooth' : 'auto'
+  })
+}
+
+function getChatTitle(messages) {
+  const firstUserMsg = messages.find(m => m.role === 'user')
+  return firstUserMsg
+    ? firstUserMsg.text.slice(0, 30)
+    : 'Nuevo chat'
+}
+
+function loadChat(chat) {
+  activeChatId.value = chat.id
+  history.value = [...chat.messages]
+}
+
+function persistCurrentChat() {
+  if (!activeChatId.value || history.value.length <= 1) return
+
+  const chat = chatHistory.value.find(c => c.id === activeChatId.value)
+  if (chat) {
+    chat.messages = [...history.value]
+    chat.updatedAt = new Date()
+  }
 }
 
 </script>
