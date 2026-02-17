@@ -24,17 +24,16 @@ export class AgentSocketWS {
       console.log('WS conectado')
     }
 
-    this.socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
+    this.socket.onmessage = (e) => {
+      const data = JSON.parse(e.data)
+      console.log('WS mensaje recibido', data)
+
+      if (data.llm_response) {
         this.onAgentMessage({
           role: 'agent',
-          text: data.message ?? data.text ?? event.data
-        })
-      } catch {
-        this.onAgentMessage({
-          role: 'agent',
-          text: event.data
+          text: data.llm_response,
+          intent: data.intent,
+          step: data.step
         })
       }
     }
@@ -53,13 +52,14 @@ export class AgentSocketWS {
     }
   }
 
-  sendUserMessage(text) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        role: 'user',
-        text
-      }))
-    }
+
+  sendMessage(text) {
+    this.socket.send(JSON.stringify({
+      message: text,
+      code_user: this.codeUser,
+      fullname: this.fullName,
+      canal: 'ws'
+    }))
   }
 
   disconnect() {

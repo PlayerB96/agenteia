@@ -9,19 +9,17 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   let socket = null
 
   const handleMessage = (msg) => {
-    messages.value.unshift(msg)
+    messages.value.push(msg)
     isProcessing.value = false
   }
 
   const connect = () => {
-    socket = import.meta.env.DEV
-      ? new MockAgentSocket(handleMessage)
-      : new AgentSocketWS({
-          onAgentMessage: handleMessage,
-          token,
-          codeUser,
-          fullName
-        })
+    socket = new AgentSocketWS({
+      onAgentMessage: handleMessage,
+      token,
+      codeUser,
+      fullName
+    })
 
     socket.connect()
     connected.value = true
@@ -41,7 +39,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       text
     })
 
-    socket.sendUserMessage(text)
+    socket.sendMessage(text)
   }
 
   onMounted(connect)

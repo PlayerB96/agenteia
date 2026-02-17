@@ -277,6 +277,15 @@ import { startAgentMock } from '../services/Company/agent.service.mock.js'
 import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
 import { FileText, FilePlus } from 'lucide-vue-next'
 import Swal from 'sweetalert2'
+import { useAuth } from '../utils/useAuth.js'
+
+const { user } = useAuth()
+const name = computed(() => {
+  const fullName = user.value?.name?.trim()
+  if (!fullName) return 'Usuario'
+
+  return fullName.split(' ')[0]
+})
 
 const {
   connected,
@@ -286,7 +295,7 @@ const {
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',
-  fullName: 'Juan Perez1'
+  fullName: name.value
 })
 
 const quickActions = ref([
