@@ -1,7 +1,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { MockAgentSocket } from './agentSocket.mock.js'
+import { AgentSocketWS } from './AgentSocketWS.js'
 
-export function useAgentSocket() {
+export function useAgentSocket({ token, codeUser, fullName }) {
   const connected = ref(false)
   const messages = ref([])
   const isProcessing = ref(false)
@@ -13,7 +14,15 @@ export function useAgentSocket() {
   }
 
   const connect = () => {
-    socket = new MockAgentSocket(handleMessage)
+    socket = import.meta.env.DEV
+      ? new MockAgentSocket(handleMessage)
+      : new AgentSocketWS({
+          onAgentMessage: handleMessage,
+          token,
+          codeUser,
+          fullName
+        })
+
     socket.connect()
     connected.value = true
   }
@@ -27,9 +36,14 @@ export function useAgentSocket() {
     if (!socket) return
 
     isProcessing.value = true
+    messages.value.unshift({
+      role: 'user',
+      text
+    })
+
     socket.sendUserMessage(text)
   }
-  
+
   onMounted(connect)
   onUnmounted(disconnect)
 

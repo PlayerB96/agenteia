@@ -1,3 +1,5 @@
+import { AgentSocketWS } from './AgentSocketWS.js'
+
 export function startAgentMock(text) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {

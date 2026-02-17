@@ -278,6 +278,17 @@ import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
 import { FileText, FilePlus } from 'lucide-vue-next'
 import Swal from 'sweetalert2'
 
+const {
+  connected,
+  messages,
+  sendMessage: sendToSocket,
+  isProcessing
+} = useAgentSocket({
+  token: 'secret123',
+  codeUser: 'USER001',
+  fullName: 'Juan Perez1'
+})
+
 const quickActions = ref([
   {
     id: 'documentar',
@@ -303,7 +314,7 @@ const stepIcon = (status) => {
   if (status === 'done') return CheckCircle
 }
 
-const { connected, messages, isProcessing, sendMessage: sendToSocket } = useAgentSocket()
+//const { connected, messages, isProcessing, sendMessage: sendToSocket } = useAgentSocket()
 const route = useRoute()
 const agentName = route.params.agentName
 
@@ -414,9 +425,9 @@ async function sendMessage() {
   const text = input.value.trim()
   if (!text) return
 
-  // Mostrar mensaje del usuario
-  history.value.push({ role: 'user', text })
-
+  // recién aquí conectas / usas socket
+  sendToSocket(text)
+  
   input.value = ''
 
   try {
@@ -426,8 +437,6 @@ async function sendMessage() {
 
     startProcessingSteps()
 
-    // recién aquí conectas / usas socket
-    sendToSocket(text)
 
   } catch (err) {
     isProcessing.value = false
@@ -478,11 +487,6 @@ function goToAgentChat() {
 }
 
 async function runQuickAction(action) {
-  history.value.push({
-    role: 'user',
-    text: action.payload
-  })
-
   sendToSocket(action.payload)
 
   await nextTick()
