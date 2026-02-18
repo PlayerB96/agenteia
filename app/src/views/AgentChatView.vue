@@ -291,6 +291,7 @@ const {
   connected,
   messages,
   sendMessage: sendToSocket,
+  showQuickActions,
   isProcessing
 } = useAgentSocket({
   token: 'secret123',
@@ -313,10 +314,10 @@ const quickActions = ref([
   }
 ])
 
-const showQuickActions = computed(() =>
-  !isProcessing.value
-)
+//const showQuickActions = ref(false)
 
+//matched action para los botones solos si existe "waiting_user_input" -> "documentar_modulo"
+//capturar params y required
 const stepIcon = (status) => {
   if (status === 'pending') return Clock
   if (status === 'active') return Loader2

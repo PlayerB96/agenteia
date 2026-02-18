@@ -1,5 +1,5 @@
 export class AgentSocketWS {
-  constructor({ onAgentMessage, token, codeUser, fullName }) {
+  constructor({ onAgentMessage, token, codeUser, fullName, onStepChange }) {
     this.onAgentMessage = onAgentMessage
     this.token = token
     this.codeUser = codeUser
@@ -10,6 +10,7 @@ export class AgentSocketWS {
     this.maxRetries = 5
     this.retries = 0
     this.shouldReconnect = true
+    this.onStepChange = onStepChange
   }
 
   connect() {
@@ -26,7 +27,6 @@ export class AgentSocketWS {
 
     this.socket.onmessage = (e) => {
       const data = JSON.parse(e.data)
-      console.log('WS mensaje recibido', data)
 
       if (data.llm_response) {
         this.onAgentMessage({
@@ -36,6 +36,11 @@ export class AgentSocketWS {
           step: data.step
         })
       }
+
+      if(this.onStepChange) {
+        this.onStepChange(data.step, data)
+      }
+
     }
 
     this.socket.onerror = (err) => {
@@ -52,6 +57,9 @@ export class AgentSocketWS {
     }
   }
 
+    send(payload){
+        this.socket.send(JSON.stringify(payload))
+    }
 
   sendMessage(text) {
     this.socket.send(JSON.stringify({

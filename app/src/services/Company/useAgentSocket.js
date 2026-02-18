@@ -7,6 +7,16 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const messages = ref([])
   const isProcessing = ref(false)
   let socket = null
+  const showQuickActions = ref(false)
+  const quickActions = ref([])
+
+  const handleStepChange = (step, data) => {
+    showQuickActions.value = step === 'waiting_user_input'
+
+    if (showQuickActions.value && data.quick_actions) {
+      quickActions.value = data.quick_actions
+    }
+  }
 
   const handleMessage = (msg) => {
     messages.value.push(msg)
@@ -16,6 +26,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const connect = () => {
     socket = new AgentSocketWS({
       onAgentMessage: handleMessage,
+      onStepChange: handleStepChange,
       token,
       codeUser,
       fullName
@@ -46,6 +57,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   onUnmounted(disconnect)
 
   return {
+    showQuickActions,
     connected,
     messages,
     isProcessing,
