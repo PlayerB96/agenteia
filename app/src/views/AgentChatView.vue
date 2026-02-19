@@ -171,7 +171,7 @@
                       bg-700 hover:bg-indigo-500/20
                       border border-600 text-sm"
               >
-                <component :is="action.icon" class="w-4 h-4 text-indigo-400" />
+                <!-- <component :is="action.icon" class="w-4 h-4 text-indigo-400" /> -->
                 {{ action.label }}
               </button>
             </div>
@@ -286,12 +286,14 @@ const name = computed(() => {
 
   return fullName.split(' ')[0]
 })
+//selected_action null -> borrar acciones rápidas
 
 const {
   connected,
   messages,
   sendMessage: sendToSocket,
   showQuickActions,
+  quickActions,
   isProcessing
 } = useAgentSocket({
   token: 'secret123',
@@ -299,24 +301,6 @@ const {
   fullName: name.value
 })
 
-const quickActions = ref([
-  {
-    id: 'documentar',
-    label: 'Documentar',
-    icon: FileText,
-    payload: 'Documentar'
-  },
-  {
-    id: 'generar',
-    label: 'Generar documento',
-    icon: FilePlus,
-    payload: 'Generar documento'
-  }
-])
-
-//const showQuickActions = ref(false)
-
-//matched action para los botones solos si existe "waiting_user_input" -> "documentar_modulo"
 //capturar params y required
 const stepIcon = (status) => {
   if (status === 'pending') return Clock

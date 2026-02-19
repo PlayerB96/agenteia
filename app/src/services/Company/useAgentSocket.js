@@ -10,12 +10,20 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const showQuickActions = ref(false)
   const quickActions = ref([])
 
-  const handleStepChange = (step, data) => {
-    showQuickActions.value = step === 'waiting_user_input'
+  const handleStepChange = (data) => {
+    showQuickActions.value =
+      data.step === 'waiting_user_input' &&
+      data.intent !== 'conversacional'
 
-    if (showQuickActions.value && data.quick_actions) {
-      quickActions.value = data.quick_actions
-    }
+    const actions = data.metadata?.matched_actions??[]
+    //console.log(data)
+    quickActions.value = actions.map(opt => ({
+      id: opt.id,
+      label: opt.id,
+      icon: '',
+      payload: opt.id
+    }))
+    //console.log(quickActions.value)
   }
 
   const handleMessage = (msg) => {
@@ -58,6 +66,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
 
   return {
     showQuickActions,
+    quickActions,
     connected,
     messages,
     isProcessing,

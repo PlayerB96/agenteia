@@ -1,5 +1,5 @@
 export class AgentSocketWS {
-  constructor({ onAgentMessage, token, codeUser, fullName, onStepChange }) {
+  constructor({ onAgentMessage, token, codeUser, fullName, onStepChange, intentChange }) {
     this.onAgentMessage = onAgentMessage
     this.token = token
     this.codeUser = codeUser
@@ -11,10 +11,11 @@ export class AgentSocketWS {
     this.retries = 0
     this.shouldReconnect = true
     this.onStepChange = onStepChange
+    this.intentChange = intentChange
   }
 
   connect() {
-    const url = `ws://172.16.0.240:8001/ws/chat` +
+    const url = `ws://172.16.0.240:8000/ws/chat` +
       `?token=${encodeURIComponent(this.token)}` +
       `&code_user=${encodeURIComponent(this.codeUser)}` +
       `&fullname=${encodeURIComponent(this.fullName)}`
@@ -27,20 +28,20 @@ export class AgentSocketWS {
 
     this.socket.onmessage = (e) => {
       const data = JSON.parse(e.data)
-
+      //console.log(data)
       if (data.llm_response) {
         this.onAgentMessage({
           role: 'agent',
           text: data.llm_response,
           intent: data.intent,
-          step: data.step
+          step: data.step,
+          intent: data.intent,
         })
       }
 
       if(this.onStepChange) {
-        this.onStepChange(data.step, data)
+        this.onStepChange(data)
       }
-
     }
 
     this.socket.onerror = (err) => {
