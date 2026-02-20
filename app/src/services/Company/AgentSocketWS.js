@@ -1,5 +1,5 @@
 export class AgentSocketWS {
-  constructor({ onAgentMessage, token, codeUser, fullName, onStepChange, intentChange }) {
+  constructor({ onAgentMessage, token, codeUser, fullName, onStepChange}) {
     this.onAgentMessage = onAgentMessage
     this.token = token
     this.codeUser = codeUser
@@ -11,7 +11,6 @@ export class AgentSocketWS {
     this.retries = 0
     this.shouldReconnect = true
     this.onStepChange = onStepChange
-    this.intentChange = intentChange
   }
 
   connect() {
@@ -28,14 +27,13 @@ export class AgentSocketWS {
 
     this.socket.onmessage = (e) => {
       const data = JSON.parse(e.data)
-      //console.log(data)
+      console.log(data)
       if (data.llm_response) {
         this.onAgentMessage({
           role: 'agent',
           text: data.llm_response,
           intent: data.intent,
           step: data.step,
-          intent: data.intent,
         })
       }
 
@@ -58,17 +56,8 @@ export class AgentSocketWS {
     }
   }
 
-    send(payload){
-        this.socket.send(JSON.stringify(payload))
-    }
-
   sendMessage(text) {
-    this.socket.send(JSON.stringify({
-      message: text,
-      code_user: this.codeUser,
-      fullname: this.fullName,
-      canal: 'ws'
-    }))
+    this.socket.send(text)//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
   }
 
   disconnect() {

@@ -16,7 +16,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       data.intent !== 'conversacional'
 
     const actions = data.metadata?.matched_actions??[]
-    //console.log(data)
+    //console.log(data.intent)
     quickActions.value = actions.map(opt => ({
       id: opt.id,
       label: opt.id,
