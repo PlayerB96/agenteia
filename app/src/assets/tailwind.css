@@ -85,4 +85,9 @@
   .bg-red-600-ag{
     @apply bg-red-600 dark:bg-red-400;
   }
+
+  .scrollbar-ag {
+    scrollbar-width: thin;
+    scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);
+  }
 }

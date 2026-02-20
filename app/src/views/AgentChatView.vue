@@ -38,7 +38,7 @@
 
     <!-- Main -->
     <main :class="[
-      maximized ? 'lg:p-0 pt-16' : 'flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto pt-16 lg:pt-8'
+      maximized ? 'lg:p-0 pt-16' : 'flex-1 p-0 md:p-2 lg:p-4 overflow-y-auto pt-16 lg:pt-8'
     ]">
       <AgentHeader v-if="!maximized" />
 
@@ -76,7 +76,7 @@
             'relative flex flex-col bg-800 border border-700',
             maximized
               ? 'fixed inset-0 z-[9999] rounded-none w-screen h-screen'
-              : 'w-full max-w mx-auto rounded-xl p-4 md:p-8'
+              : 'w-full max-w mx-auto rounded-xl p-0 md:p-2'
           ]" :style="maximized ? { width: '99vw', height: '99vh' } : {}"
           >
 
@@ -88,7 +88,7 @@
             </button>
 
             <!-- Opciones superiores -->
-            <div v-if="maximized" class="mb-4 bg-900 border border-700 rounded-lg">
+            <div v-if="maximized" class="bg-900 border border-700 rounded-lg">
               <button @click="showOptions = !showOptions"
                 class="w-full flex items-center justify-between px-4 py-2 font-semibold hover:bg-800">
                 Opciones de {{ agentName.replace(/_/g, ' ') }}
@@ -98,11 +98,11 @@
               <div v-if="showOptions" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 class="font-semibold mb-2">Últimos mensajes</h3>
-                  <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-thin">
+                  <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-ag">
                     <li v-for="(msg, i) in lastChats" :key="i" class="flex gap-1">
                       <component :is="msg.role === 'user' ? User : Bot" class="w-3 h-3" />
                       <span class="font-bold">{{ msg.role }}:</span>
-                      {{ msg.text }}
+                      <span class="max-w-[70%] w-fit break-all">{{ msg.text }}</span>
                     </li>
                   </ul>
                 </div>
@@ -136,17 +136,18 @@
             </div>
 
             <!-- Mensajes -->
-            <div ref="messagesContainer" class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin">
+            <div ref="messagesContainer" class="flex-1 overflow-y-auto p-2 rounded-lg bg-700/10 scrollbar-ag max-w-[100%] max-h-[70vh] scrollbar-ag">
               <TransitionGroup
                 name="chat"
                 tag="div"
-                class="flex-1 overflow-y-auto mb-4 p-2 rounded-lg bg-700/10 scrollbar-thin"
+                class="flex-1 overflow-y-auto p-2 rounded-lg bg-700/10 scrollbar-thin"
               >
                 <div v-for="(msg, i) in history" :key="i" class="mb-2 flex"
                   :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                  <div class="flex items-end gap-2" :class="msg.role === 'user' && 'flex-row-reverse'">
+                  <div class="flex items-end gap-2 min-w-0" :class="msg.role === 'user' && 'flex-row-reverse'">
                     <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
-                    <span class="px-3 py-2 rounded-lg text-sm shadow"
+                    <span class="px-3 py-2 rounded-lg text-sm shadow
+                          max-w-[100%] break-all w-fit whitespace-pre-wrap"
                       :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
                       {{ msg.text }}
                     </span>
@@ -176,17 +177,52 @@
               </button>
             </div>
             <!-- Input -->
-            <form @submit.prevent="sendMessage" class="flex gap-2 m-4">
-              <input v-model="input" placeholder="Escribe tu mensaje…" :disabled="isProcessing"
-                class="flex-1 bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none" />
-              <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
-                <Send class="w-4 h-4" /> <div class="hidden sm:inline">Enviar</div>
-              </button>
+            <form @submit.prevent="sendMessage" class="flex flex-col gap-3 mt-1">
+              <!-- Inputs dinámicos -->
+              <TransitionGroup
+                name="chat"
+                tag="div"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+              >
+                <div
+                  v-for="(value, key) in actionInputs"
+                  :key="key"
+                  class="flex flex-col"
+                >
+                  <label :for="key" class="text-sm text-gray-300">
+                    {{ key }}
+                  </label>
+                  <input
+                    :id="key"
+                    v-model="actionInputs[key]"
+                    :readonly="key === 'code_user'"
+                    type="text"
+                    class="bg-700 border border-600 rounded-lg px-3 py-2"
+                  />
+                </div>
+              </TransitionGroup>
+              <!-- Input normal -->
+              <div v-if="!selectedAction" class="flex flex-col gap-2">
+                <input
+                  v-model="input"
+                  placeholder="Escribe tu mensaje…"
+                  :disabled="isProcessing || selectedAction"
+                  class="w-full bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none"
+                />
+              </div>
+
+              <!-- Botón siempre abajo -->
+              <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
+                  <Send class="w-4 h-4" />
+                  <span class="hidden sm:inline">Enviar</span>
+                </button>
+              </div>
             </form>
 
             <!-- Acciones -->
             <button @click="clearHistory"
-              class="mt-4 inline-flex items-center gap-2 px-3 py-2 bg-700 rounded hover:bg-indigo-500/10">
+              class="inline-flex items-center gap-2 px-3 py-2 bg-700 rounded hover:bg-indigo-500/10">
               <MessageCircle class="w-4 h-4 text-indigo-400"/> Nuevo Chat
             </button>
 
@@ -195,14 +231,14 @@
 
         <!-- Aside -->
         <aside v-if="!maximized"
-          class="w-full md:w-[420px] bg-800 border border-700 rounded-xl p-4 md:p-8 flex flex-col gap-8">
+          class="w-full md:w-[420px] bg-800 border border-700 rounded-xl p-0 md:p-4 flex flex-col gap-8">
           <div>
             <h2 class="font-bold mb-4">Opciones de {{ agentName.replace(/_/g, ' ') }}</h2>
-            <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-thin">
+            <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-ag">
               <li v-for="(msg, i) in lastChats" :key="i" class="flex gap-1">
                 <component :is="msg.role === 'user' ? User : Bot" class="w-3 h-3" />
                 <span class="font-bold">{{ msg.role }}:</span>
-                {{ msg.text }}
+                <span class="max-w-[70%] w-fit break-all">{{ msg.text }}</span>
               </li>
             </ul>
           </div>
@@ -294,6 +330,7 @@ const {
   sendMessage: sendToSocket,
   showQuickActions,
   quickActions,
+  selectedAction,
   isProcessing
 } = useAgentSocket({
   token: 'secret123',
@@ -343,6 +380,7 @@ const mobileMenuOpen = ref(false)
 
 const messagesContainer = ref(null)
 
+const actionInputs = ref({})
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value
 }
@@ -408,19 +446,59 @@ watch(
   }
 )
 
+watch(selectedAction, (action) => {
+  if (!action?.params) return
+
+  actionInputs.value = {}
+  Object.keys(action.params).forEach(key => {
+    if (key === 'code_user') {
+      actionInputs.value[key] = name.value
+    } else if (key === 'id_action') {
+      actionInputs.value[key] = action.id
+    } else {
+      actionInputs.value[key] = ''
+    }
+  })
+})
+
+const validateRequired = () => {
+  if (!selectedAction.value?.required) return true
+
+  return selectedAction.value.required.every(
+    key => actionInputs.value[key]?.trim()
+  )
+}
+
 function startProcessingSteps() {
   steps.value.forEach(s => s.status = 'pending')
   steps.value[0].status = 'pending'
 }
 
 async function sendMessage() {
+  if (!validateRequired()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Faltan campos requeridos',
+      text: 'Por favor completa todos los campos requeridos antes de enviar la acción.'
+    })
+    return
+  }
   if (isProcessing.value) return
 
+  // 🟢 CASO 1: acción seleccionada
+  if (selectedAction.value) {
+    sendToSocket(JSON.stringify({
+      id_action: selectedAction.value.id,
+      ...actionInputs.value
+    }))
+    return
+  }
   const text = input.value.trim()
   if (!text) return
 
-  // recién aquí conectas / usas socket
-  sendToSocket(text)
+  // 🟢 CASO 2: mensaje de texto
+  // caso normal de texto, enviar al socket
+  sendToSocket(text, 'client')
   
   input.value = ''
 
@@ -430,8 +508,11 @@ async function sendMessage() {
     const res = await startAgentMock(text)
 
     startProcessingSteps()
-
-
+    //focus en el input del chat
+    setTimeout(() => {
+      const inputEl = document.querySelector('input[placeholder="Escribe tu mensaje…"]')
+      if (inputEl) inputEl.focus()
+    })
   } catch (err) {
     isProcessing.value = false
 

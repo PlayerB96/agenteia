@@ -9,11 +9,13 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   let socket = null
   const showQuickActions = ref(false)
   const quickActions = ref([])
+  const selectedAction = ref(null)
 
   const handleStepChange = (data) => {
     showQuickActions.value =
       data.step === 'waiting_user_input' &&
-      data.intent !== 'conversacional'
+      data.intent !== 'conversacional' &&
+      data.user_message !== 'documentar_modulo'
 
     const actions = data.metadata?.matched_actions??[]
     //console.log(data.intent)
@@ -23,7 +25,11 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       icon: '',
       payload: opt.id
     }))
-    //console.log(quickActions.value)
+    
+    //capturar selected_action
+    if(data.metadata?.selected_action) {
+      selectedAction.value = data.metadata.selected_action
+    }
   }
 
   const handleMessage = (msg) => {
@@ -65,6 +71,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   onUnmounted(disconnect)
 
   return {
+    selectedAction,
     showQuickActions,
     quickActions,
     connected,
