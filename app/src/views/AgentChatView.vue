@@ -187,18 +187,21 @@
                 <div
                   v-for="(value, key) in actionInputs"
                   :key="key"
-                  class="flex flex-col"
                 >
-                  <label :for="key" class="text-sm text-gray-300">
-                    {{ key }}
-                  </label>
-                  <input
-                    :id="key"
-                    v-model="actionInputs[key]"
-                    :readonly="key === 'code_user'"
-                    type="text"
-                    class="bg-700 border border-600 rounded-lg px-3 py-2"
-                  />
+                  <div 
+                  v-if="value !== 'documentar_modulo'"
+                  class="flex flex-col"
+                  >
+                    <label :for="key" class="text-sm text-gray-300">
+                      {{ key }}
+                    </label>
+                    <input
+                      :id="key"
+                      v-model="actionInputs[key]"
+                      type="text"
+                      class="bg-700 border border-600 rounded-lg px-3 py-2"
+                    />
+                  </div>
                 </div>
               </TransitionGroup>
               <!-- Input normal -->
@@ -451,9 +454,9 @@ watch(selectedAction, (action) => {
 
   actionInputs.value = {}
   Object.keys(action.params).forEach(key => {
-    if (key === 'code_user') {
+    /*if (key === 'code_user') {
       actionInputs.value[key] = name.value
-    } else if (key === 'id_action') {
+    } else*/ if (key === 'id_action') {
       actionInputs.value[key] = action.id
     } else {
       actionInputs.value[key] = ''
@@ -474,6 +477,22 @@ function startProcessingSteps() {
   steps.value[0].status = 'pending'
 }
 
+function normalizeMessage(text, max = 140) {
+  if (text.length <= max) {
+    return {
+      short: text,
+      full: null,
+      truncated: false
+    }
+  }
+
+  return {
+    short: text.slice(0, max) + '...',
+    full: text,
+    truncated: true
+  }
+}
+
 async function sendMessage() {
   if (!validateRequired()) {
     Swal.fire({
@@ -491,6 +510,7 @@ async function sendMessage() {
       id_action: selectedAction.value.id,
       ...actionInputs.value
     }))
+    console.log('caso 1')
     return
   }
   const text = input.value.trim()
@@ -499,7 +519,7 @@ async function sendMessage() {
   // 🟢 CASO 2: mensaje de texto
   // caso normal de texto, enviar al socket
   sendToSocket(text, 'client')
-  
+  console.log('caso 2')
   input.value = ''
 
   try {

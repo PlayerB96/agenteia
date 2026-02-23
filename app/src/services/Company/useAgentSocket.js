@@ -13,12 +13,10 @@ export function useAgentSocket({ token, codeUser, fullName }) {
 
   const handleStepChange = (data) => {
     showQuickActions.value =
-      data.step === 'waiting_user_input' &&
-      data.intent !== 'conversacional' &&
-      data.user_message !== 'documentar_modulo'
+      data.ui_controls.show_action_buttons
 
-    const actions = data.metadata?.matched_actions??[]
-    //console.log(data.intent)
+    const actions = data.metadata_public?.matched_actions??[]
+    console.log(data)
     quickActions.value = actions.map(opt => ({
       id: opt.id,
       label: opt.id,
@@ -27,8 +25,8 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     }))
     
     //capturar selected_action
-    if(data.metadata?.selected_action) {
-      selectedAction.value = data.metadata.selected_action
+    if(data.ui_controls?.show_param_form) {
+      selectedAction.value = data.metadata_public?.selected_action
     }
   }
 

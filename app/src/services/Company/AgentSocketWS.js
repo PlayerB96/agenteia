@@ -27,11 +27,10 @@ export class AgentSocketWS {
 
     this.socket.onmessage = (e) => {
       const data = JSON.parse(e.data)
-      console.log(data)
-      if (data.llm_response) {
+      if (data.message) {
         this.onAgentMessage({
           role: 'agent',
-          text: data.llm_response,
+          ...normalizeMessage(data.message),
           intent: data.intent,
           step: data.step,
         })
@@ -56,8 +55,14 @@ export class AgentSocketWS {
     }
   }
 
+
   sendMessage(text) {
-    this.socket.send(text)//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
+    const payload = {
+        type: "message",
+        message: text,
+        params_required: null
+    }
+    this.socket.send(JSON.stringify(payload))//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
   }
 
   disconnect() {
