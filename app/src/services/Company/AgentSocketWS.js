@@ -30,7 +30,7 @@ export class AgentSocketWS {
       if (data.message) {
         this.onAgentMessage({
           role: 'agent',
-          ...normalizeMessage(data.message),
+          text: data.message,
           intent: data.intent,
           step: data.step,
         })

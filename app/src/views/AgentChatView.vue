@@ -477,22 +477,6 @@ function startProcessingSteps() {
   steps.value[0].status = 'pending'
 }
 
-function normalizeMessage(text, max = 140) {
-  if (text.length <= max) {
-    return {
-      short: text,
-      full: null,
-      truncated: false
-    }
-  }
-
-  return {
-    short: text.slice(0, max) + '...',
-    full: text,
-    truncated: true
-  }
-}
-
 async function sendMessage() {
   if (!validateRequired()) {
     Swal.fire({
