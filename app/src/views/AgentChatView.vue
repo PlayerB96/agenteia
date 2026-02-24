@@ -142,28 +142,12 @@
                 tag="div"
                 class="flex-1 overflow-y-auto p-2 rounded-lg bg-700/10 scrollbar-thin"
               >
-                <div v-for="(msg, i) in history" :key="i" class="mb-2 flex"
-                  :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
-                  <div class="flex items-end gap-2 min-w-0" :class="msg.role === 'user' && 'flex-row-reverse'">
-                    <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
-                    <span
-                      v-if="messageError==false"
-                      class="px-3 py-2 rounded-lg text-sm shadow
-                          max-w-[100%] break-all w-fit whitespace-pre-wrap text-100"
-                      :class="msg.role === 'user' ? 'bg-indigo-500' : 'bg-700'"
-                      >
-                      {{ msg.text }}
-                    </span>
-                    <span
-                      v-else
-                      class="px-3 py-2 rounded-lg text-sm shadow
-                          max-w-[100%] break-all w-fit whitespace-pre-wrap text-100"
-                      :class="msg.role === 'user' ? 'bg-indigo-500' : 'bg-red-500'"
-                      >
-                      {{ msg.text }}
-                    </span>
-                  </div>
-                </div>
+                <ChatMessage
+                  v-for="(msg, i) in history"
+                  :key="i"
+                  :msg="msg"
+                  :messageError="messageError"
+                />
               </TransitionGroup>
               <div v-if="isProcessing" class="flex items-center gap-2 text-sm text-400 px-2">
                 <Bot class="w-4 h-4 animate-pulse" />
@@ -171,22 +155,11 @@
               </div>
             </div>
             <!-- Acciones rápidas -->
-            <div
+            <QuickActions
               v-if="showQuickActions"
-              class="flex flex-wrap justify-center gap-2"
-            >
-              <button
-                v-for="action in quickActions"
-                :key="action.id"
-                @click="runQuickAction(action)"
-                class="flex items-center gap-2 px-3 py-2 rounded-full
-                      bg-700 hover:bg-indigo-500/20
-                      border border-600 text-sm"
-              >
-                <!-- <component :is="action.icon" class="w-4 h-4 text-indigo-400" /> -->
-                {{ action.label }}
-              </button>
-            </div>
+              :actions="quickActions"
+              @select="runQuickAction"
+            />
             <!-- Input -->
             <form @submit.prevent="sendMessage" class="flex flex-col gap-3 mt-1">
               <!-- Inputs dinámicos -->
@@ -319,6 +292,8 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import AgentHeader from '../components/AgentHeader.vue'
 import CompanySidebar from '../components/CompanySidebar.vue'
+import ChatMessage from '../components/ChatMessage.vue'
+import QuickActions from '../components/QuickActions.vue'
 import { Bot, User, Send, Maximize2, Minimize, MessageCircle } from 'lucide-vue-next'
 import { mockAgents } from '../data/mockAgents.js'
 import { useAgentSocket } from '../services/Company/useAgentSocket.js'
