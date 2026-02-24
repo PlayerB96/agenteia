@@ -146,9 +146,20 @@
                   :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
                   <div class="flex items-end gap-2 min-w-0" :class="msg.role === 'user' && 'flex-row-reverse'">
                     <component :is="msg.role === 'user' ? User : Bot" class="w-5 h-5 text-indigo-400" />
-                    <span class="px-3 py-2 rounded-lg text-sm shadow
-                          max-w-[100%] break-all w-fit whitespace-pre-wrap"
-                      :class="msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-700 text-100'">
+                    <span
+                      v-if="messageError==false"
+                      class="px-3 py-2 rounded-lg text-sm shadow
+                          max-w-[100%] break-all w-fit whitespace-pre-wrap text-100"
+                      :class="msg.role === 'user' ? 'bg-indigo-500' : 'bg-700'"
+                      >
+                      {{ msg.text }}
+                    </span>
+                    <span
+                      v-else
+                      class="px-3 py-2 rounded-lg text-sm shadow
+                          max-w-[100%] break-all w-fit whitespace-pre-wrap text-100"
+                      :class="msg.role === 'user' ? 'bg-indigo-500' : 'bg-red-500'"
+                      >
                       {{ msg.text }}
                     </span>
                   </div>
@@ -334,7 +345,8 @@ const {
   showQuickActions,
   quickActions,
   selectedAction,
-  isProcessing
+  isProcessing,
+  messageError
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',
@@ -358,7 +370,7 @@ const input = ref('')
 const currentStep = ref(0)
 
 const history = ref([
-  { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }
+  { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?'},
 ])
 const chatHistory = ref([])
 const activeChatId = ref(null)
@@ -464,6 +476,16 @@ watch(selectedAction, (action) => {
   })
 })
 
+watch(messageError, (error) => {
+  if (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Mensaje no relacionado'
+    })
+  }
+})
+
 const validateRequired = () => {
   if (!selectedAction.value?.required) return true
 
@@ -514,9 +536,10 @@ async function sendMessage() {
     startProcessingSteps()
     //focus en el input del chat
     setTimeout(() => {
+      console.log('focus')
       const inputEl = document.querySelector('input[placeholder="Escribe tu mensaje…"]')
       if (inputEl) inputEl.focus()
-    })
+    }, 500)
   } catch (err) {
     isProcessing.value = false
 

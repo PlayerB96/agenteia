@@ -1,15 +1,17 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { MockAgentSocket } from './agentSocket.mock.js'
 import { AgentSocketWS } from './AgentSocketWS.js'
+import { AgentSocketWorker } from './AgentSocketWorker.js'
 
 export function useAgentSocket({ token, codeUser, fullName }) {
   const connected = ref(false)
   const messages = ref([])
   const isProcessing = ref(false)
   let socket = null
+  let socket2 = null
   const showQuickActions = ref(false)
   const quickActions = ref([])
   const selectedAction = ref(null)
+  const messageError = ref(false)
 
   const handleStepChange = (data) => {
     showQuickActions.value =
@@ -28,6 +30,12 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     if(data.ui_controls?.show_param_form) {
       selectedAction.value = data.metadata_public?.selected_action
     }
+
+    if(data.ui_state == 'error'){
+      messageError.value = true;
+    }else{
+      messageError.value = false
+    }
   }
 
   const handleMessage = (msg) => {
@@ -36,6 +44,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   }
 
   const connect = () => {
+    if (socket) return
     socket = new AgentSocketWS({
       onAgentMessage: handleMessage,
       onStepChange: handleStepChange,
@@ -48,8 +57,21 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     connected.value = true
   }
 
-  const disconnect = () => {
+  const connectSocketWorker = () => {
+    if (socket2) return
+
+    socket2 = new AgentSocketWorker({
+      token,
+      codeUser,
+      fullName,
+    })
+
+    socket2.connectAgentSocket()
+  }
+
+  const disconnectAll = () => {
     socket?.disconnect()
+    socket2?.disconnect()
     connected.value = false
   }
 
@@ -65,8 +87,22 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     socket.sendMessage(text)
   }
 
+  /*const sendMessageWorker = (text) => {
+    if (!socket2) return
+
+    isProcessing.value = true
+    messages.value.unshift({
+      role: 'user',
+      text
+    })
+
+    console.log(text)
+    socket2.sendMessageWorker(text)
+  }*/
+
+
   onMounted(connect)
-  onUnmounted(disconnect)
+  onUnmounted(disconnectAll)
 
   return {
     selectedAction,
@@ -75,6 +111,8 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     connected,
     messages,
     isProcessing,
-    sendMessage
+    sendMessage,
+    connectSocketWorker,
+    messageError
   }
 }
