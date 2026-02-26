@@ -14,11 +14,18 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const messageError = ref(false)
   const showExecuteButton = ref(false)
   const showChat = ref(true)
+  const showParamForm = ref(false)
   const lastExecutedParams = ref([])
+  const currentTaskId = ref(null)
+  const documentUrl = ref('')
+  const mostrarDocumento = ref(false)
 
   const handleStepChange = (data) => {
-    showQuickActions.value =
-      data.ui_controls.show_action_buttons
+    if(data.ui_controls?.show_action_buttons) {
+      showQuickActions.value = true
+    }else{
+      showQuickActions.value = false
+    }
 
     const actions = data.metadata_public?.matched_actions??[]
     console.log(data)
@@ -31,27 +38,37 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     
     //capturar selected_action
     if(data.ui_controls?.show_param_form) {
+      showParamForm.value = true
       selectedAction.value = data.metadata_public?.selected_action
+    }else{
+      showParamForm.value = false
     }
 
+    //mostrar chat
     if(data.ui_controls?.show_chat) {
       showChat.value = true
     }else{
       showChat.value = false
     }
 
+    //mostrar error
     if(data.ui_state == 'error'){
       messageError.value = true;
     }else{
       messageError.value = false
     }
 
+    //mostrar bot
     if(data.ui_controls?.show_execute_button){
       showExecuteButton.value = true
       //llenar required_params nuevamente
       lastExecutedParams.value = data.required_params ?? []
     }else{
       showExecuteButton.value = false
+    }
+
+    if(data.task_id) {
+      currentTaskId.value = data.task_id
     }
   }
 
@@ -75,20 +92,22 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   }
 
   const connectSocketWorker = () => {
+    if (socket2?.socketWorker?.readyState === WebSocket.OPEN) {
+      console.log('socket2 ya conectado')
+      return
+    }
     socket2 = new AgentSocketWorker({
       token,
       codeUser,
       fullName,
+      onMessage: handleWorkerMessage,
     })
 
-    if (socket2) return
-
-    socket2.connectSocketWorker()
+    socket2.connectAgentSocket()
   }
 
   const disconnectAll = () => {
     socket?.disconnect()
-    socket2?.disconnect()
     connected.value = false
   }
 
@@ -104,11 +123,8 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     socket.sendMessage(text)
   }
 
-  const sendMessageWorker = (text) => {
-    if (!socket2) {
-      console.log('connectSocketWorker no conectado')
-      return
-    }
+  const documentarWorker = (text) => {
+    if (!socket) return
 
     isProcessing.value = true
     messages.value.unshift({
@@ -116,8 +132,21 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       text
     })
 
-    console.log('todo bien js')
-    socket2.sendMessageWorker(text)
+    socket.documentarAccion(text)
+  }
+
+  const handleWorkerMessage = (data) => {
+    console.log('[socket2]', data)
+    if (!data.task_id) return
+    if (data.task_id !== currentTaskId.value) return
+
+    if (data.status === 'SUCCESS' && data.result?.data?.url) {
+      console.log('Documento listo:', data.result.data.url)
+
+      documentUrl.value = data.result.data.url
+      mostrarDocumento.value = true
+      isProcessing.value = false
+    }
   }
 
 
@@ -133,11 +162,16 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     messages,
     isProcessing,
     sendMessage,
-    sendMessageWorker,
     connectSocketWorker,
+    documentarWorker,
     messageError,
     showExecuteButton,
     showChat,
-    lastExecutedParams
+    lastExecutedParams,
+    showParamForm,
+    currentTaskId,
+    documentUrl,
+    mostrarDocumento,
+    handleWorkerMessage
   }
 }

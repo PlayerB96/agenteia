@@ -172,6 +172,7 @@
                 name="chat"
                 tag="div"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                v-if="showParamForm"
               >
                 <div
                   v-for="(value, key) in actionInputs"
@@ -203,6 +204,16 @@
                   :disabled="isProcessing || selectedAction"
                   class="w-full bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none"
                 />
+                {{ currentTaskId }} {{ mostrarDocumento }}
+                <div v-if="mostrarDocumento">
+                  <a
+                    :href="documentUrl"
+                    target="_blank"
+                    class="px-4 py-2 bg-green-600 text-white rounded"
+                  >
+                    Descargar documento
+                  </a>
+                </div>
               </div>
 
               <!-- Botón siempre abajo -->
@@ -326,7 +337,7 @@ const {
   messages,
   sendMessage: sendToSocket,
   connectSocketWorker,
-  sendMessageWorker: sendToSocketWorker,
+  documentarWorker,
   showQuickActions,
   quickActions,
   selectedAction,
@@ -334,7 +345,12 @@ const {
   messageError,
   showExecuteButton,
   showChat,
-  lastExecutedParams
+  lastExecutedParams,
+  showParamForm,
+  currentTaskId,
+  documentUrl,
+  mostrarDocumento,
+  handleWorkerMessage
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',
@@ -348,7 +364,6 @@ const stepIcon = (status) => {
   if (status === 'done') return CheckCircle
 }
 
-//const { connected, messages, isProcessing, sendMessage: sendToSocket } = useAgentSocket()
 const route = useRoute()
 const agentName = route.params.agentName
 
@@ -487,6 +502,12 @@ watch(messageError, (error) => {
       text: 'Mensaje no relacionado'
     })
   }
+})
+
+//watch de documento
+watch(currentTaskId, (id) => {
+  if (!id) return
+  console.log('task_id recibido, conectando socket2:', id)
 })
 
 const isDocumentationMode = computed(() => showExecuteButton.value)
@@ -631,12 +652,10 @@ function persistCurrentChat() {
 }
 
 function runAction() {
-  connectSocketWorker()
-  if (!selectedAction.value) return
-
-  sendToSocketWorker(JSON.stringify({
-    id_action: selectedAction.value.id,
-    ...actionInputs.value
+  documentarWorker(JSON.stringify({
+    type: 'close',
+    message: 'documentar',
+    params_required: actionInputs.value
   }))
 }
 </script>
