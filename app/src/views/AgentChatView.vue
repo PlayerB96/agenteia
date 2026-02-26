@@ -147,6 +147,7 @@
                   :key="i"
                   :msg="msg"
                   :messageError="messageError"
+                  :isDocumentationMode="isDocumentationMode"
                 />
               </TransitionGroup>
               <div v-if="isProcessing" class="flex items-center gap-2 text-sm text-400 px-2">
@@ -159,6 +160,10 @@
               v-if="showQuickActions"
               :actions="quickActions"
               @select="runQuickAction"
+            />
+            <ExecutedActions
+              :showExecuteButton="showExecuteButton"
+              @executeButton="runAction"
             />
             <!-- Input -->
             <form @submit.prevent="sendMessage" class="flex flex-col gap-3 mt-1">
@@ -173,7 +178,7 @@
                   :key="key"
                 >
                   <div 
-                  v-if="value !== 'documentar_modulo'"
+                  v-if="selectedAction && key != 'id_action'"
                   class="flex flex-col"
                   >
                     <label :for="key" class="text-sm text-gray-300">
@@ -182,6 +187,7 @@
                     <input
                       :id="key"
                       v-model="actionInputs[key]"
+                      :readonly="isDocumentationMode"
                       type="text"
                       class="bg-700 border border-600 rounded-lg px-3 py-2"
                     />
@@ -189,7 +195,8 @@
                 </div>
               </TransitionGroup>
               <!-- Input normal -->
-              <div v-if="!selectedAction" class="flex flex-col gap-2">
+              
+              <div v-if="showChat" class="flex flex-col gap-2">
                 <input
                   v-model="input"
                   placeholder="Escribe tu mensaje…"
@@ -199,7 +206,7 @@
               </div>
 
               <!-- Botón siempre abajo -->
-              <div class="flex justify-end">
+              <div class="flex justify-end mb-1">
                 <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg flex items-center gap-1">
                   <Send class="w-4 h-4" />
                   <span class="hidden sm:inline">Enviar</span>
@@ -294,6 +301,7 @@ import AgentHeader from '../components/AgentHeader.vue'
 import CompanySidebar from '../components/CompanySidebar.vue'
 import ChatMessage from '../components/ChatMessage.vue'
 import QuickActions from '../components/QuickActions.vue'
+import ExecutedActions from '../components/ExecutedActions.vue'
 import { Bot, User, Send, Maximize2, Minimize, MessageCircle } from 'lucide-vue-next'
 import { mockAgents } from '../data/mockAgents.js'
 import { useAgentSocket } from '../services/Company/useAgentSocket.js'
@@ -317,11 +325,16 @@ const {
   connected,
   messages,
   sendMessage: sendToSocket,
+  connectSocketWorker,
+  sendMessageWorker: sendToSocketWorker,
   showQuickActions,
   quickActions,
   selectedAction,
   isProcessing,
-  messageError
+  messageError,
+  showExecuteButton,
+  showChat,
+  lastExecutedParams
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',
@@ -441,9 +454,7 @@ watch(selectedAction, (action) => {
 
   actionInputs.value = {}
   Object.keys(action.params).forEach(key => {
-    /*if (key === 'code_user') {
-      actionInputs.value[key] = name.value
-    } else*/ if (key === 'id_action') {
+    if (key === 'id_action') {
       actionInputs.value[key] = action.id
     } else {
       actionInputs.value[key] = ''
@@ -451,6 +462,23 @@ watch(selectedAction, (action) => {
   })
 })
 
+watch(lastExecutedParams, (params) => {
+  if (!params) return
+  if (!selectedAction.value?.params) return
+
+  actionInputs.value = {}
+
+  // 🔑 USAMOS EL ORDEN DEL SCHEMA
+  Object.keys(selectedAction.value.params).forEach(key => {
+    if (key === 'id_action') {
+      actionInputs.value[key] = selectedAction.value.id
+    } else {
+      actionInputs.value[key] = params[key] ?? ''
+    }
+  })
+})
+
+//watch error
 watch(messageError, (error) => {
   if (error) {
     Swal.fire({
@@ -460,6 +488,8 @@ watch(messageError, (error) => {
     })
   }
 })
+
+const isDocumentationMode = computed(() => showExecuteButton.value)
 
 const validateRequired = () => {
   if (!selectedAction.value?.required) return true
@@ -511,7 +541,6 @@ async function sendMessage() {
     startProcessingSteps()
     //focus en el input del chat
     setTimeout(() => {
-      console.log('focus')
       const inputEl = document.querySelector('input[placeholder="Escribe tu mensaje…"]')
       if (inputEl) inputEl.focus()
     }, 500)
@@ -601,4 +630,13 @@ function persistCurrentChat() {
   }
 }
 
+function runAction() {
+  connectSocketWorker()
+  if (!selectedAction.value) return
+
+  sendToSocketWorker(JSON.stringify({
+    id_action: selectedAction.value.id,
+    ...actionInputs.value
+  }))
+}
 </script>

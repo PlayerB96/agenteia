@@ -12,6 +12,9 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const quickActions = ref([])
   const selectedAction = ref(null)
   const messageError = ref(false)
+  const showExecuteButton = ref(false)
+  const showChat = ref(true)
+  const lastExecutedParams = ref([])
 
   const handleStepChange = (data) => {
     showQuickActions.value =
@@ -31,10 +34,24 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       selectedAction.value = data.metadata_public?.selected_action
     }
 
+    if(data.ui_controls?.show_chat) {
+      showChat.value = true
+    }else{
+      showChat.value = false
+    }
+
     if(data.ui_state == 'error'){
       messageError.value = true;
     }else{
       messageError.value = false
+    }
+
+    if(data.ui_controls?.show_execute_button){
+      showExecuteButton.value = true
+      //llenar required_params nuevamente
+      lastExecutedParams.value = data.required_params ?? []
+    }else{
+      showExecuteButton.value = false
     }
   }
 
@@ -58,15 +75,15 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   }
 
   const connectSocketWorker = () => {
-    if (socket2) return
-
     socket2 = new AgentSocketWorker({
       token,
       codeUser,
       fullName,
     })
 
-    socket2.connectAgentSocket()
+    if (socket2) return
+
+    socket2.connectSocketWorker()
   }
 
   const disconnectAll = () => {
@@ -87,8 +104,11 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     socket.sendMessage(text)
   }
 
-  /*const sendMessageWorker = (text) => {
-    if (!socket2) return
+  const sendMessageWorker = (text) => {
+    if (!socket2) {
+      console.log('connectSocketWorker no conectado')
+      return
+    }
 
     isProcessing.value = true
     messages.value.unshift({
@@ -96,12 +116,13 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       text
     })
 
-    console.log(text)
+    console.log('todo bien js')
     socket2.sendMessageWorker(text)
-  }*/
+  }
 
 
   onMounted(connect)
+  onMounted(connectSocketWorker)
   onUnmounted(disconnectAll)
 
   return {
@@ -112,7 +133,11 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     messages,
     isProcessing,
     sendMessage,
+    sendMessageWorker,
     connectSocketWorker,
-    messageError
+    messageError,
+    showExecuteButton,
+    showChat,
+    lastExecutedParams
   }
 }

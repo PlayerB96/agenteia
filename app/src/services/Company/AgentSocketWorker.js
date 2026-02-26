@@ -33,12 +33,7 @@ export class AgentSocketWorker {
   }
   
   sendMessageWorker(text) {
-    const payload = {
-        type: "message",
-        message: null,
-        params_required: text
-    }
-    console.log(payload)
-    this.socketWorker.send(JSON.stringify(payload))//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
+    console.log('todo bien worker: ',text)
+    this.socketWorker.send(text)//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
   }
 }

@@ -18,7 +18,7 @@ import { computed } from 'vue'
 import { User, Bot } from 'lucide-vue-next'
 const props = defineProps({
   msg: { type: Object, required: true },
-  messageError: { type: Boolean, default: false }
+  messageError: { type: Boolean, default: false },
 })
 
 const isUser = computed(() => props.msg.role === 'user')
