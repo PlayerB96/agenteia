@@ -15,12 +15,16 @@ export class AgentSocketWorker {
     this.socketWorker = new WebSocket(url)
 
     this.socketWorker.onopen = () => {
-      console.log('[socket2] conectado OK')
+      //activar socket2 en el backend
+      this.socketWorker.send(JSON.stringify({
+        task_id: '89784498-fbe6-4c8b-8a46-b84d392fbdb4'
+      }))
+      //traer datos del socket2
+      console.log('[socket2] conectado y listo para recibir')
     }
 
     this.socketWorker.onmessage = (event) => {
       const data = JSON.parse(event.data)
-      console.log('[socket2]', data)
 
       this.onMessage?.(data)
     }

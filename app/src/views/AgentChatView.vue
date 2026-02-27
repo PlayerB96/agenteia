@@ -204,16 +204,6 @@
                   :disabled="isProcessing || selectedAction"
                   class="w-full bg-700 border border-600 rounded-lg px-4 py-2 focus:outline-none"
                 />
-                {{ currentTaskId }} {{ mostrarDocumento }}
-                <div v-if="mostrarDocumento">
-                  <a
-                    :href="documentUrl"
-                    target="_blank"
-                    class="px-4 py-2 bg-green-600 text-white rounded"
-                  >
-                    Descargar documento
-                  </a>
-                </div>
               </div>
 
               <!-- Botón siempre abajo -->
@@ -273,6 +263,25 @@
               </li>
             </ul>
           </div>
+          <div v-if="mostrarDocumento" class="mt-2">
+            <small v-if="!documentoExpirado" class="flex items-center justify-center mb-2 font-semibold">
+              <Timer /> Disponible por: {{ tiempoRestante }}
+            </small>
+
+            <a
+              v-if="!documentoExpirado"
+              :href="documentUrl"
+              target="_blank"
+              class="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded"
+            >
+              <Download class="w-4 h-4 mr-2" />
+              Descargar documento
+            </a>
+
+            <small v-else class="text-red-600 block">
+              ❌ El documento ha expirado
+            </small>
+          </div>
           <!-- Chats recientes -->
           <div class="flex-1">
             <h3 class="font-semibold mb-2">Chats recientes</h3>
@@ -313,7 +322,7 @@ import CompanySidebar from '../components/CompanySidebar.vue'
 import ChatMessage from '../components/ChatMessage.vue'
 import QuickActions from '../components/QuickActions.vue'
 import ExecutedActions from '../components/ExecutedActions.vue'
-import { Bot, User, Send, Maximize2, Minimize, MessageCircle } from 'lucide-vue-next'
+import { Bot, User, Send, Maximize2, Minimize, MessageCircle, Timer, Download } from 'lucide-vue-next'
 import { mockAgents } from '../data/mockAgents.js'
 import { useAgentSocket } from '../services/Company/useAgentSocket.js'
 import { MockAgentSocket } from '../services/Company/agentSocket.mock.js'
@@ -350,7 +359,8 @@ const {
   currentTaskId,
   documentUrl,
   mostrarDocumento,
-  handleWorkerMessage
+  tiempoRestante,
+  documentoExpirado
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',

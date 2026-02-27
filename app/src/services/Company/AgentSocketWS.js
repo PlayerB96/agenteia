@@ -62,7 +62,6 @@ export class AgentSocketWS {
         message: text,
         params_required: null
     }
-    console.log(JSON.stringify(payload))
     this.socket.send(JSON.stringify(payload))//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
   }
 

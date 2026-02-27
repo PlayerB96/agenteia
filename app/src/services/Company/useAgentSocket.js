@@ -19,6 +19,9 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const currentTaskId = ref(null)
   const documentUrl = ref('')
   const mostrarDocumento = ref(false)
+  const tiempoRestante = ref('')
+  const documentoExpirado = ref(false)
+  let expirationTimer = null
 
   const handleStepChange = (data) => {
     if(data.ui_controls?.show_action_buttons) {
@@ -135,24 +138,57 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     socket.documentarAccion(text)
   }
 
-  const handleWorkerMessage = (data) => {
-    console.log('[socket2]', data)
-    if (!data.task_id) return
-    if (data.task_id !== currentTaskId.value) return
+  const startExpirationCountdown = (createdAt, secondsToExpire) => {
+    const expiresAt = createdAt.getTime() + secondsToExpire * 1000
 
-    if (data.status === 'SUCCESS' && data.result?.data?.url) {
-      console.log('Documento listo:', data.result.data.url)
-
-      documentUrl.value = data.result.data.url
-      mostrarDocumento.value = true
-      isProcessing.value = false
+    // limpiar si ya existía
+    if (expirationTimer) {
+      clearInterval(expirationTimer)
     }
+
+    expirationTimer = setInterval(() => {
+      const remainingMs = expiresAt - Date.now()
+
+      if (remainingMs <= 0) {
+        clearInterval(expirationTimer)
+        tiempoRestante.value = 'Expirado'
+        documentoExpirado.value = true
+        return
+      }
+
+      const totalSeconds = Math.floor(remainingMs / 1000)
+      const minutes = Math.floor(totalSeconds / 60)
+      const seconds = totalSeconds % 60
+
+      tiempoRestante.value = `${minutes}:${seconds.toString().padStart(2, '0')}`
+    }, 1000)
+  }
+  
+  const handleWorkerMessage = (data) => {
+    if (!data || typeof data !== 'object') return
+    if (!data.url) return
+
+    console.log('Documento listo:', data.url)
+
+    const createdAt = new Date(data.created_at.replace(' ', 'T'))
+
+    documentUrl.value = data.url
+    mostrarDocumento.value = true
+    isProcessing.value = false
+    documentoExpirado.value = false
+
+    startExpirationCountdown(createdAt, data.tiempo_expiracion)
   }
 
 
   onMounted(connect)
   onMounted(connectSocketWorker)
   onUnmounted(disconnectAll)
+  onUnmounted(() => {
+    if (expirationTimer) {
+      clearInterval(expirationTimer)
+    }
+  })
 
   return {
     selectedAction,
@@ -172,6 +208,8 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     currentTaskId,
     documentUrl,
     mostrarDocumento,
-    handleWorkerMessage
+    handleWorkerMessage,
+    tiempoRestante,
+    documentoExpirado,
   }
 }
