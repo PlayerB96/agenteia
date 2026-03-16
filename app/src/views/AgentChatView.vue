@@ -109,7 +109,7 @@
                   </ul>
                 </div>
 
-                <div>
+                <div v-if="beginDocumentation">
                   <h3 class="text-xs font-semibold mb-1.5">Pasos</h3>
                   <ul class="text-xs space-y-2">
                     <li v-for="(step, i) in steps" :key="i" class="flex inline-center gap-2">
@@ -175,7 +175,7 @@
                   :key="key"
                 >
                   <div 
-                  v-if="selectedAction && key != 'id_action'"
+                  v-if="selectedAction && !hiddenParams.includes(key)"
                   class="flex flex-col gap-1"
                   >
                     <label :for="key" class="text-xs text-agent-text-muted font-medium">
@@ -229,7 +229,7 @@
             </ul>
           </div>
 
-          <div>
+          <div v-if="beginDocumentation">
             <h3 class="text-xs font-semibold mb-1.5 text-agent-text-muted">Pasos</h3>
             <ul class="text-xs space-y-2">
               <li v-for="step in steps" :key="step.id" class="flex items-center gap-2">
@@ -336,6 +336,7 @@ const name = computed(() => {
 const {
   connected,
   messages,
+  sendMessage1,
   sendMessage: sendToSocket,
   connectSocketWorker,
   documentarWorker,
@@ -354,7 +355,8 @@ const {
   tiempoRestante,
   documentoExpirado,
   updateStepsFromSocket,
-  steps
+  steps,
+  beginDocumentation
 } = useAgentSocket({
   token: 'secret123',
   codeUser: 'USER001',
@@ -396,6 +398,8 @@ const mobileMenuOpen = ref(false)
 const messagesContainer = ref(null)
 
 const actionInputs = ref({})
+
+const hiddenParams = ['id_action', 'id_conversation']
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value
 }
@@ -436,6 +440,8 @@ watch(selectedAction, (action) => {
       actionInputs.value[key] = ''
     }
   })
+  // 🔹 nuevo parámetro oculto
+  actionInputs.value['id_conversation'] = "0"
 })
 
 watch(lastExecutedParams, (params) => {
@@ -499,10 +505,10 @@ async function sendMessage() {
 
   // 🟢 CASO 1: acción seleccionada
   if (selectedAction.value) {
-    sendToSocket(JSON.stringify({
+    sendMessage1({
       id_action: selectedAction.value.id,
       ...actionInputs.value
-    }))
+    })
     console.log('caso 1')
     return
   }
@@ -565,7 +571,25 @@ function clearHistory() {
   ]
 
   input.value = ''
+
   steps.value.forEach(s => s.status = 'pending')
+
+  resetAgentUI()
+}
+
+function resetAgentUI() {
+  // reset agent UI
+  showParamForm.value = false
+  showQuickActions.value = false
+  showExecuteButton.value = false
+  mostrarDocumento.value = false
+
+  selectedAction.value = null
+  lastExecutedParams.value = []
+
+  currentTaskId.value = null
+  isProcessing.value = false
+  showChat.value = true
 }
 
 function goToAgentChat() {

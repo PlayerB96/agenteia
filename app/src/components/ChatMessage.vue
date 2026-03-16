@@ -40,16 +40,23 @@ const isUser = computed(() => props.msg.role === 'user')
 
 const MAX_CHARS = 100
 
+const messageText = computed(() => {
+  if (typeof props.msg.text === 'object') {
+    return JSON.stringify(props.msg.text, null, 2)
+  }
+  return props.msg.text
+})
+
 const shouldTruncate = computed(() => {
-  return props.msg.text?.length > MAX_CHARS
+  return (messageText.value?.length || 0) > MAX_CHARS
 })
 
 const displayedText = computed(() => {
   if (!shouldTruncate.value || expanded.value) {
-    return props.msg.text
+    return messageText.value
   }
 
-  return props.msg.text.slice(0, MAX_CHARS) + '...'
+  return messageText.value.slice(0, MAX_CHARS) + '...'
 })
 
 

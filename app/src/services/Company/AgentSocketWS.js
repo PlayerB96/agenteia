@@ -65,6 +65,16 @@ export class AgentSocketWS {
     }
     this.socket.send(JSON.stringify(payload))//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
   }
+  
+  sendMessage1(text) {
+    const payload = {
+        type: "close",
+        message: "true",
+        params_required: text
+    }
+    this.socket.send(JSON.stringify(payload))//solo enviar texto, el backend se encarga de armar el mensaje completo con intent y step
+    console.log(JSON.stringify(payload))
+  }
 
   documentarAccion(text) {
     const data = JSON.parse(text)
@@ -75,6 +85,7 @@ export class AgentSocketWS {
         params_required: data.params_required
     }
     this.socket.send(JSON.stringify(payload))
+    console.log(JSON.stringify(payload))
   }
   disconnect() {
     this.shouldReconnect = false

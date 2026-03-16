@@ -21,6 +21,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
   const mostrarDocumento = ref(false)
   const tiempoRestante = ref('')
   const documentoExpirado = ref(false)
+  const beginDocumentation = ref(false)
   let expirationTimer = null
 
   const handleStepChange = (data) => {
@@ -68,6 +69,10 @@ export function useAgentSocket({ token, codeUser, fullName }) {
       lastExecutedParams.value = data.required_params ?? []
     }else{
       showExecuteButton.value = false
+    }
+
+    if(data.conversation_closed) {
+      beginDocumentation.value = true
     }
 
     if(data.task_id) {
@@ -124,6 +129,19 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     })
 
     socket.sendMessage(text)
+  }
+
+  
+  const sendMessage1 = (text) => {
+    if (!socket) return
+
+    isProcessing.value = true
+    messages.value.unshift({
+      role: 'user',
+      text
+    })
+
+    socket.sendMessage1(text)
   }
 
   const documentarWorker = (text) => {
@@ -227,6 +245,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     connected,
     messages,
     isProcessing,
+    sendMessage1,
     sendMessage,
     connectSocketWorker,
     documentarWorker,
@@ -242,6 +261,7 @@ export function useAgentSocket({ token, codeUser, fullName }) {
     tiempoRestante,
     documentoExpirado,
     updateStepsFromSocket,
-    steps
+    steps,
+    beginDocumentation
   }
 }
