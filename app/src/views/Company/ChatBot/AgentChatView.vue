@@ -293,7 +293,10 @@
                 <p class="font-medium truncate text-agent-text">{{ chat.title }}</p>
                 <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
                   <MessageCircle class="w-3 h-3 text-agent-500" />
-                  {{ new Date(chat.createdAt).toLocaleTimeString() }}
+                  {{ chat.createdAt 
+                      ? new Date(chat.createdAt).toLocaleTimeString() 
+                      : '--:--' 
+                  }}
                 </p>
               </li>
             </ul>
@@ -323,6 +326,7 @@ import { Clock, Loader2, CheckCircle } from 'lucide-vue-next'
 import { FileText, FilePlus } from 'lucide-vue-next'
 import Swal from 'sweetalert2'
 import { useAuth } from '../../../utils/useAuth.js'
+import axios from 'axios'
 
 const { user } = useAuth()
 const name = computed(() => {
@@ -332,6 +336,8 @@ const name = computed(() => {
   return fullName.split(' ')[0]
 })
 //selected_action null -> borrar acciones rápidas
+
+const codeUser = ref('USER001')
 
 const {
   connected,
@@ -359,7 +365,7 @@ const {
   beginDocumentation
 } = useAgentSocket({
   token: 'secret123',
-  codeUser: 'USER001',
+  codeUser: codeUser.value,
   fullName: name.value
 })
 
@@ -400,6 +406,7 @@ const messagesContainer = ref(null)
 const actionInputs = ref({})
 
 const hiddenParams = ['id_action', 'id_conversation']
+
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value
 }
@@ -476,6 +483,28 @@ watch(currentTaskId, (id) => {
   if (!id) return
   console.log('task_id recibido, conectando socket2:', id)
 })
+
+
+const fetchChatHistory = async (codeUser) => {
+  try {
+    const { data } = await axios.post('/api-chat/api/v1/chat_history', {
+      code_user: codeUser
+    })
+    console.log('Historial de chat recibido:', data)
+
+    // adapta según respuesta real del backend
+    chatHistory.value = data?.data || []
+
+  } catch (error) {
+    console.error('Error cargando historial:', error)
+  }
+}
+
+watch(codeUser, (newVal) => {
+  if (!newVal) return
+
+  fetchChatHistory(newVal)
+}, { immediate: true })
 
 const isDocumentationMode = computed(() => showExecuteButton.value)
 

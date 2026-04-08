@@ -12,6 +12,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api-worker/, '')
+      },
+      // 👇 NUEVO proxy para tu backend local
+      '/api-chat': {
+        target: 'http://172.16.0.240:8001',
+        changeOrigin: true,
+        secure: false, // importante porque es http
+        rewrite: (path) => path.replace(/^\/api-chat/, '')
       }
     }
   }
