@@ -1,9 +1,9 @@
 <script setup>
 import { watch, onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useAuth } from "../utils/useAuth";
+import { useAuth } from "../../utils/useAuth";
 import { CircleAlert } from "lucide-vue-next";
-import mockUsers from "../data/mockUsers.json";
+import mockUsers from "../../data/mockUsers.json";
 
 const { login, loginWithCredentials, loginWithPassword, isAuthenticated, userRole, isLoading, error: authError } = useAuth();
 const router = useRouter();

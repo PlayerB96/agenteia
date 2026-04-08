@@ -4,7 +4,7 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 
-import CompanySidebar from './components/CompanySidebar.vue'
+import CompanySidebar from './components/Company/CompanySidebar.vue'
 import './assets/tailwind.css'
 import { APP_VERSION } from './config/app.js'
 

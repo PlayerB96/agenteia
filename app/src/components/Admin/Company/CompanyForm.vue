@@ -18,8 +18,8 @@ import { ClipboardList,
  } from 'lucide-vue-next'
 import FeaturesTabs from './FeaturesTabs.vue'
 import FeatureAccordion from './FeatureAccordion.vue'
-import StatsAgent from './StatsAgent.vue'
-import { showSwalAlert } from './SwalAlert.js'
+import StatsAgent from '../StatsAgent.vue'
+import { showSwalAlert } from '../../SwalAlert.js'
 import { computed } from 'vue'
 
 const props = defineProps({

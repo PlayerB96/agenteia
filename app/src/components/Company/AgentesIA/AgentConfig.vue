@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { showSwalAlert } from './SwalAlert.js';
+import { showSwalAlert } from '../../SwalAlert.js';
 import { Plus, Power, PowerOff, Edit, Trash2 } from "lucide-vue-next";
 import ModalAddAgent from "./ModalAddAgent.vue";
 const props = defineProps({

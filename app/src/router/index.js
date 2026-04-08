@@ -5,10 +5,10 @@ import { authGuard } from '@auth0/auth0-vue'
 import { useAuth } from '../utils/useAuth'
 
 // Views
-import Login from '../views/Login.vue'
-import AdminDashboard from '../views/AdminDashboard.vue'
-import CompanyDashboard from '../views/CompanyDashboard.vue'
-import CompanyEditView from '../views/CompanyEditView.vue'
+import Login from '../views/Login/Login.vue'
+import AdminDashboard from '../views/Admin/AdminDashboard.vue'
+import CompanyDashboard from '../views/Company/CompanyDashboard.vue'
+import CompanyEditView from '../views/Company/CompanyEditView.vue'
 
 import Callback from '../views/Callback.vue'
 import Onboarding from '../views/Onboarding.vue'
@@ -17,7 +17,7 @@ const routes = [
   {
     path: '/company/chat',
     name: 'AgentChatSelect',
-    component: () => import('../views/AgentChatView.vue'),
+    component: () => import('../views/Company/ChatBot/AgentChatView.vue'),
     meta: { requiresAuth: true, role: 'company_admin' }
   },
   {
@@ -61,7 +61,7 @@ const routes = [
   {
     path: '/company/:agentName',
     name: 'AgentChatView',
-    component: () => import('../views/AgentChatView.vue'),
+    component: () => import('../views/Company/ChatBot/AgentChatView.vue'),
     meta: { requiresAuth: true, role: 'company_admin' }
   },
   {

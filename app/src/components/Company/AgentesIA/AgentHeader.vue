@@ -34,7 +34,7 @@
 <script setup>
 import { inject } from 'vue'
 import { MoonStar, Sun, LogOut } from 'lucide-vue-next'
-import { useAuth } from '../utils/useAuth'
+import { useAuth } from '../../../utils/useAuth'
 
 const { user, logout } = useAuth()
 const theme = inject('theme')
