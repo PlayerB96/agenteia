@@ -1,3 +1,5 @@
+const WS_COMPANY_CODE = 'ln1'
+
 export class AgentSocketWorker {
   constructor({ onMessage, token, codeUser, fullName }) {
     this.token = token
@@ -6,11 +8,14 @@ export class AgentSocketWorker {
     this.onMessage = onMessage
   }
   connectAgentSocket() {
+    const host = import.meta.env.VITE_BACKEND_HOST || '127.0.0.1'
+    const port = import.meta.env.VITE_BACKEND_PORT || '8001'
     const url =
-      `ws://172.16.0.240:8001/ws/documentar_modulo` +
+      `ws://${host}:${port}/ws/documentar_modulo` +
       `?token=${encodeURIComponent(this.token)}` +
       `&code_user=${encodeURIComponent(this.codeUser)}` +
-      `&fullname=${encodeURIComponent(this.fullName)}`
+      `&fullname=${encodeURIComponent(this.fullName)}` +
+      `&company=${encodeURIComponent(WS_COMPANY_CODE)}`
 
     this.socketWorker = new WebSocket(url)
 

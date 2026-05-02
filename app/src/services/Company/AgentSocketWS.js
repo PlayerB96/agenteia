@@ -1,3 +1,6 @@
+/** Código de compañía enviado en el query del WebSocket (backend). */
+const WS_COMPANY_CODE = 'ln1'
+
 export class AgentSocketWS {
   constructor({ onAgentMessage, token, codeUser, fullName, onStepChange}) {
     this.onAgentMessage = onAgentMessage
@@ -14,10 +17,13 @@ export class AgentSocketWS {
   }
 
   connect() {
-    const url = `ws://172.16.0.240:8000/ws/chat` +
+    const host = import.meta.env.VITE_BACKEND_HOST || '127.0.0.1'
+    const port = import.meta.env.VITE_WS_CHAT_PORT || '8000'
+    const url = `ws://${host}:${port}/ws/chat` +
       `?token=${encodeURIComponent(this.token)}` +
       `&code_user=${encodeURIComponent(this.codeUser)}` +
-      `&fullname=${encodeURIComponent(this.fullName)}`
+      `&fullname=${encodeURIComponent(this.fullName)}` +
+      `&company=${encodeURIComponent(WS_COMPANY_CODE)}`
 
     this.socket = new WebSocket(url)
 

@@ -109,6 +109,68 @@
                   </ul>
                 </div>
 
+                <div class="md:col-span-2 border-t border-agent-border pt-3 flex flex-col gap-3">
+                  <div class="flex flex-col shrink-0 gap-1">
+                    <h3 class="text-xs font-semibold text-agent-text">Chats recientes</h3>
+                    <ul class="max-h-28 overflow-y-auto space-y-1 text-xs scrollbar-ag">
+                      <li
+                        v-for="chat in recentSessionChatsForUi"
+                        :key="'mx-r-' + chat.id"
+                        @click.stop="loadChat(chat)"
+                        class="cursor-pointer p-2 rounded-lg border touch-manipulation"
+                        :class="chatRowClass(chat)"
+                      >
+                        <p class="font-medium truncate">{{ chatCardTitle(chat) }}</p>
+                        <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
+                          <MessageCircle class="w-3 h-3 text-agent-500" />
+                          {{ chatCardTime(chat) }}
+                        </p>
+                      </li>
+                    </ul>
+
+                    <div
+                      v-if="previousConversation"
+                      class="flex flex-col gap-2 rounded-lg border border-agent-500/35 bg-agent-500/10 p-2.5 text-xs w-full mt-0.5"
+                    >
+                      <div class="flex items-start gap-2">
+                        <Undo2 class="w-4 h-4 shrink-0 text-agent-500 mt-0.5" />
+                        <p class="text-agent-text min-w-0 leading-snug">
+                          Estabas en: <strong class="font-semibold break-words">{{ previousConversation.title }}</strong>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        @click="returnToPreviousConversation"
+                        class="w-full px-3 py-2 rounded-lg bg-agent-500 text-white text-xs font-semibold hover:bg-agent-600"
+                      >
+                        Volver a esa conversación
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col flex-1 min-h-0">
+                    <h3 class="text-xs font-semibold mb-1.5 text-agent-text">Chats historial</h3>
+                    <p v-if="chatHistoryLoading" class="text-[11px] text-agent-text-muted">Cargando historial…</p>
+                    <p v-else-if="chatHistoryError" class="text-[11px] text-red-500">{{ chatHistoryError }}</p>
+                    <p v-else-if="!remoteChatHistory.length" class="text-[11px] text-agent-text-muted">No hay datos del servidor.</p>
+                    <ul v-else class="max-h-36 overflow-y-auto space-y-1 text-xs scrollbar-ag">
+                      <li
+                        v-for="chat in remoteChatHistoryForUi"
+                        :key="'mx-h-' + chatCardKey(chat)"
+                        @click.stop="loadChat(chat)"
+                        class="cursor-pointer p-2 rounded-lg border touch-manipulation"
+                        :class="chatRowClass(chat)"
+                      >
+                        <p class="font-medium truncate">{{ chatCardTitle(chat) }}</p>
+                        <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
+                          <MessageCircle class="w-3 h-3 text-agent-500" />
+                          {{ chatCardTime(chat) }}
+                        </p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div v-if="beginDocumentation">
                   <h3 class="text-xs font-semibold mb-1.5">Pasos</h3>
                   <ul class="text-xs space-y-2">
@@ -163,6 +225,35 @@
               :showExecuteButton="showExecuteButton"
               @executeButton="runAction"
             />
+
+            <!-- Borrador guardado al cambiar de chat (visible también en pantalla completa) -->
+            <div
+              v-if="hasStoredPendingDraft"
+              class="flex flex-col gap-2 rounded-lg border border-amber-500/40 bg-amber-500/[0.07] px-3 py-2.5 text-xs text-agent-text shrink-0 mt-2"
+              role="status"
+            >
+              <div class="min-w-0">
+                <p class="font-semibold text-agent-text">Tienes un borrador sin enviar</p>
+                <p class="text-agent-text-muted mt-1 line-clamp-2 break-words" :title="pendingDraftFull">{{ pendingDraftPreview }}</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  @click="restorePendingDraft"
+                  class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-agent-500 text-white text-xs font-medium hover:bg-agent-600"
+                >
+                  Poner en el mensaje
+                </button>
+                <button
+                  type="button"
+                  @click="discardPendingDraft"
+                  class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-agent-border bg-agent-surface-elevated text-xs font-medium hover:bg-agent-border/40"
+                >
+                  Descartar borrador
+                </button>
+              </div>
+            </div>
+
             <!-- Input estilo Cursor: compacto, en línea -->
             <form @submit.prevent="sendMessage" class="flex flex-col gap-2 mt-2 shrink-0">
               <!-- Inputs dinámicos -->
@@ -194,6 +285,7 @@
               <!-- Input principal estilo Cursor -->
               <div v-if="showChat" class="flex items-center gap-2 bg-agent-surface-elevated border border-agent-border rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-agent-500/50 focus-within:border-agent-500/40">
                 <input
+                  ref="messageInputRef"
                   v-model="input"
                   placeholder="Mensaje…"
                   :disabled="isProcessing || selectedAction"
@@ -215,9 +307,9 @@
           </div>
         </section>
 
-        <!-- Aside - misma altura que el chat, scroll interno -->
+        <!-- Aside: ancho fijo; lista de recientes con altura acotada para no empujar el chat -->
         <aside v-if="!maximized"
-          class="w-full md:w-[320px] shrink-0 min-h-0 flex flex-col bg-agent-surface border border-agent-border rounded-lg p-3 gap-4 overflow-hidden">
+          class="w-full md:w-[320px] md:max-w-[320px] shrink-0 min-h-0 max-h-[min(100%,calc(100vh-8rem))] flex flex-col bg-agent-surface border border-agent-border rounded-lg p-3 gap-4 overflow-hidden">
           <div>
             <h2 class="text-sm font-semibold mb-2 text-agent-text">Opciones de {{ agentName.replace(/_/g, ' ') }}</h2>
             <ul class="max-h-32 overflow-y-auto space-y-1 text-xs scrollbar-ag">
@@ -274,32 +366,72 @@
               ❌ El documento ha expirado
             </small>
           </div>
-          <!-- Chats recientes -->
-          <div class="flex-1 min-h-0 overflow-y-auto scrollbar-ag">
-            <h3 class="text-xs font-semibold mb-1.5 text-agent-text-muted">Chats recientes</h3>
 
-            <ul class="space-y-1 text-xs">
-              <li
-                v-for="chat in chatHistory"
-                :key="chat.id"
-                @click="loadChat(chat)"
-                class="cursor-pointer p-2 rounded-lg border"
-                :class="[
-                  chat.id === activeChatId
-                    ? 'bg-agent-500/15 border-agent-500/40 text-agent-text'
-                    : 'bg-agent-surface-elevated border-agent-border hover:border-agent-500/30 text-agent-text'
-                ]"
+          <!-- Recientes + volver pegados arriba; historial ocupa el resto -->
+          <div class="flex flex-1 min-h-0 flex-col gap-3 overflow-hidden">
+            <div class="flex flex-col shrink-0 gap-1">
+              <h3 class="text-xs font-semibold text-agent-text-muted shrink-0">Chats recientes</h3>
+              <ul class="max-h-36 space-y-1 text-xs overflow-y-auto scrollbar-ag touch-manipulation">
+                <li
+                  v-for="chat in recentSessionChatsForUi"
+                  :key="'rs-' + chat.id"
+                  @click.stop="loadChat(chat)"
+                  class="cursor-pointer p-2 rounded-lg border"
+                  :class="chatRowClass(chat)"
+                >
+                  <p class="font-medium truncate text-agent-text">{{ chatCardTitle(chat) }}</p>
+                  <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
+                    <MessageCircle class="w-3 h-3 text-agent-500" />
+                    {{ chatCardTime(chat) }}
+                  </p>
+                </li>
+              </ul>
+
+              <div
+                v-if="previousConversation"
+                class="flex flex-col gap-2 rounded-lg border border-agent-500/35 bg-agent-500/10 p-3 text-xs w-full mt-0.5"
               >
-                <p class="font-medium truncate text-agent-text">{{ chat.title }}</p>
-                <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
-                  <MessageCircle class="w-3 h-3 text-agent-500" />
-                  {{ chat.createdAt 
-                      ? new Date(chat.createdAt).toLocaleTimeString() 
-                      : '--:--' 
-                  }}
+                <div class="flex items-start gap-2">
+                  <Undo2 class="w-4 h-4 shrink-0 text-agent-500 mt-0.5" />
+                  <p class="text-agent-text min-w-0 leading-snug">
+                    Estabas en: <strong class="font-semibold break-words">{{ previousConversation.title }}</strong>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="returnToPreviousConversation"
+                  class="w-full px-3 py-2 rounded-lg bg-agent-500 text-white text-xs font-semibold hover:bg-agent-600"
+                >
+                  Volver a esa conversación
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col flex-1 min-h-0 border-t border-agent-border pt-3">
+              <h3 class="text-xs font-semibold mb-1.5 text-agent-text-muted shrink-0">Chats historial</h3>
+              <p v-if="chatHistoryLoading" class="text-[11px] text-agent-text-muted shrink-0">Cargando historial…</p>
+              <p v-else-if="chatHistoryError" class="text-[11px] text-red-500 shrink-0">{{ chatHistoryError }}</p>
+              <template v-else>
+                <p v-if="!remoteChatHistory.length" class="text-[11px] text-agent-text-muted shrink-0 mb-1">
+                  Sin datos del endpoint <code class="text-[10px] opacity-80">/api-chat/api/v1/chat_history</code>.
                 </p>
-              </li>
-            </ul>
+                <ul class="space-y-1 text-xs overflow-y-auto scrollbar-ag flex-1 min-h-0 touch-manipulation">
+                  <li
+                    v-for="chat in remoteChatHistoryForUi"
+                    :key="'api-' + chatCardKey(chat)"
+                    @click.stop="loadChat(chat)"
+                    class="cursor-pointer p-2 rounded-lg border"
+                    :class="chatRowClass(chat)"
+                  >
+                    <p class="font-medium truncate text-agent-text">{{ chatCardTitle(chat) }}</p>
+                    <p class="text-[10px] text-agent-text-muted flex items-center gap-0.5 mt-0.5">
+                      <MessageCircle class="w-3 h-3 text-agent-500" />
+                      {{ chatCardTime(chat) }}
+                    </p>
+                  </li>
+                </ul>
+              </template>
+            </div>
           </div>
         </aside>
 
@@ -310,14 +442,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Navbar from '../../../components/Navbar.vue'
 import CompanySidebar from '../../../components/Company/CompanySidebar.vue'
 import ChatMessage from '../../../components/Company/ChatBot/ChatMessage.vue'
 import QuickActions from '../../../components/Company/ChatBot/QuickActions.vue'
 import ExecutedActions from '../../../components/Company/ChatBot/ExecutedActions.vue'
-import { Bot, User, Send, Maximize2, Minimize, Plus, MessageCircle, Timer, Download, Menu, X } from 'lucide-vue-next'
+import { Bot, User, Send, Maximize2, Minimize, Plus, MessageCircle, Timer, Download, Menu, X, Undo2 } from 'lucide-vue-next'
 import { mockAgents } from '../../../data/mockAgents.js'
 import { useAgentSocket } from '../../../services/Company/useAgentSocket.js'
 import { MockAgentSocket } from '../../../services/Company/agentSocket.mock.js'
@@ -388,7 +520,13 @@ const currentStep = ref(0)
 const history = ref([
   { role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?'},
 ])
-const chatHistory = ref([])
+/** Conversaciones guardadas en esta sesión (p. ej. al usar «Nuevo chat») — máx. 3 en cliente */
+const recentSessionChats = ref([])
+/** Lista devuelta por POST /api-chat/api/v1/chat_history */
+const remoteChatHistory = ref([])
+const chatHistoryLoading = ref(false)
+const chatHistoryError = ref(null)
+
 const activeChatId = ref(null)
 
 const lastChats = computed(() => history.value.slice(-5))
@@ -402,6 +540,162 @@ const currentSubtab = ref('chat-agente')
 const mobileMenuOpen = ref(false)
 
 const messagesContainer = ref(null)
+const messageInputRef = ref(null)
+
+/** Borrador del input por conversación (y sesión sin id guardada en lista) */
+const PENDING_DRAFT_KEY = '__pending__'
+const inputDraftByContext = ref({})
+
+/** Conversación de la que el usuario salió al elegir otra en «Chats recientes» */
+const previousConversation = ref(null)
+
+function contextDraftKey(chatId) {
+  return chatId == null ? PENDING_DRAFT_KEY : String(chatId)
+}
+
+function draftsStorageKey() {
+  const id = agentName && agentName !== 'chat' ? String(agentName) : 'default'
+  return `agenteia-chat-input-drafts:${id}`
+}
+
+function persistDraftsToStorage() {
+  try {
+    sessionStorage.setItem(draftsStorageKey(), JSON.stringify(inputDraftByContext.value))
+  } catch (_) {}
+}
+
+function loadDraftsFromStorage() {
+  try {
+    const raw = sessionStorage.getItem(draftsStorageKey())
+    if (!raw) {
+      inputDraftByContext.value = {}
+      return
+    }
+    const parsed = JSON.parse(raw)
+    inputDraftByContext.value = parsed && typeof parsed === 'object' ? parsed : {}
+  } catch (_) {
+    inputDraftByContext.value = {}
+  }
+}
+
+const pendingDraftFull = computed(() => (inputDraftByContext.value[PENDING_DRAFT_KEY] || '').trim())
+const hasStoredPendingDraft = computed(() => pendingDraftFull.value.length > 0)
+const pendingDraftPreview = computed(() => {
+  const s = pendingDraftFull.value
+  return s.length > 96 ? `${s.slice(0, 96)}…` : s
+})
+
+function restorePendingDraft() {
+  const raw = inputDraftByContext.value[PENDING_DRAFT_KEY]
+  const t = typeof raw === 'string' ? raw : ''
+  if (!t.trim()) return
+  input.value = t
+  delete inputDraftByContext.value[PENDING_DRAFT_KEY]
+  nextTick(() => messageInputRef.value?.focus())
+}
+
+function discardPendingDraft() {
+  delete inputDraftByContext.value[PENDING_DRAFT_KEY]
+}
+
+watch(inputDraftByContext, persistDraftsToStorage, { deep: true })
+
+watch(
+  () => route.params.agentName,
+  () => {
+    loadDraftsFromStorage()
+  },
+  { immediate: true }
+)
+
+function normalizeLoadedMessages(chat) {
+  const raw = chat?.messages
+  if (Array.isArray(raw) && raw.length > 0) return [...raw]
+  return [{ role: 'agent', text: '¡Hola! ¿En qué puedo ayudarte hoy?' }]
+}
+
+function resolveChatRowId(chat) {
+  if (!chat || typeof chat !== 'object') return null
+  return chat.id ?? chat.conversation_id ?? chat.chat_id ?? null
+}
+
+function findChatMeta(chatId) {
+  if (chatId == null) return undefined
+  return recentSessionChats.value.find((c) => String(resolveChatRowId(c)) === String(chatId))
+    || remoteChatHistory.value.find((c) => String(resolveChatRowId(c)) === String(chatId))
+}
+
+/** Evita duplicar la misma conversación en lista + tarjeta «Estabas en» */
+const previousConversationSkipId = computed(() => {
+  const p = previousConversation.value
+  return p?.kind === 'saved' ? p.chatId : null
+})
+
+const recentSessionChatsForUi = computed(() => {
+  const skip = previousConversationSkipId.value
+  if (skip == null) return recentSessionChats.value
+  return recentSessionChats.value.filter(
+    (c) => String(resolveChatRowId(c)) !== String(skip)
+  )
+})
+
+const remoteChatHistoryForUi = computed(() => {
+  const skip = previousConversationSkipId.value
+  if (skip == null) return remoteChatHistory.value
+  return remoteChatHistory.value.filter(
+    (c) => String(resolveChatRowId(c)) !== String(skip)
+  )
+})
+
+function rememberPreviousChatContext() {
+  persistCurrentChat()
+
+  const label = buildPreviousConversationLabel(history.value, input.value)
+
+  if (activeChatId.value != null) {
+    previousConversation.value = {
+      kind: 'saved',
+      chatId: activeChatId.value,
+      title: label || 'Conversación'
+    }
+    return
+  }
+
+  const hasConversation = history.value.length > 1 || Boolean(input.value.trim())
+  if (hasConversation) {
+    previousConversation.value = {
+      kind: 'unsaved',
+      messages: [...history.value],
+      inputDraft: input.value,
+      title: label || 'Conversación'
+    }
+  } else {
+    previousConversation.value = null
+  }
+}
+
+function returnToPreviousConversation() {
+  const prev = previousConversation.value
+  if (!prev) return
+
+  if (prev.kind === 'saved') {
+    const chat = findChatMeta(prev.chatId)
+    previousConversation.value = null
+    if (chat) loadChat(chat, { skipRememberPrevious: true })
+    return
+  }
+
+  previousConversation.value = null
+  activeChatId.value = null
+  history.value = [...prev.messages]
+  input.value = prev.inputDraft ?? ''
+  inputDraftByContext.value[PENDING_DRAFT_KEY] = prev.inputDraft ?? ''
+
+  nextTick(() => {
+    messageInputRef.value?.focus()
+    scrollToBottom(false)
+  })
+}
 
 const actionInputs = ref({})
 
@@ -468,14 +762,8 @@ watch(lastExecutedParams, (params) => {
 })
 
 //watch error
-watch(messageError, (error) => {
-  if (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Mensaje no relacionado'
-    })
-  }
+watch(messageError, (_error) => {
+  // el error ya se muestra como texto en rojo en el chat
 })
 
 //watch de documento
@@ -486,17 +774,19 @@ watch(currentTaskId, (id) => {
 
 
 const fetchChatHistory = async (codeUser) => {
+  chatHistoryLoading.value = true
+  chatHistoryError.value = null
   try {
     const { data } = await axios.post('/api-chat/api/v1/chat_history', {
       code_user: codeUser
     })
-    console.log('Historial de chat recibido:', data)
-
-    // adapta según respuesta real del backend
-    chatHistory.value = data?.data || []
-
+    remoteChatHistory.value = Array.isArray(data?.data) ? data.data : []
   } catch (error) {
     console.error('Error cargando historial:', error)
+    chatHistoryError.value = error?.response?.data?.message || error?.message || 'No se pudo cargar el historial'
+    remoteChatHistory.value = []
+  } finally {
+    chatHistoryLoading.value = false
   }
 }
 
@@ -549,6 +839,7 @@ async function sendMessage() {
   sendToSocket(text, 'client')
   console.log('caso 2')
   input.value = ''
+  delete inputDraftByContext.value[contextDraftKey(activeChatId.value)]
 
   try {
     isProcessing.value = true
@@ -556,10 +847,8 @@ async function sendMessage() {
     const res = await startAgentMock(text)
 
     startProcessingSteps()
-    //focus en el input del chat
     setTimeout(() => {
-      const inputEl = document.querySelector('input[placeholder="Escribe tu mensaje…"]')
-      if (inputEl) inputEl.focus()
+      messageInputRef.value?.focus()
     }, 500)
   } catch (err) {
     isProcessing.value = false
@@ -568,21 +857,16 @@ async function sendMessage() {
       role: 'agent',
       text: err.response?.data?.message || 'Ocurrió un error al iniciar el agente'
     })
-
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: err.response?.data?.message || 'No se pudo procesar la solicitud'
-    })
   }
 }
 
 function clearHistory() {
+  previousConversation.value = null
   persistCurrentChat()
   if (history.value.length > 1) {
     if (!activeChatId.value){
       const chatId = Date.now() 
-      chatHistory.value.unshift({
+      recentSessionChats.value.unshift({
         id: chatId,
         title: getChatTitle(history.value),
         messages: [...history.value],
@@ -590,8 +874,7 @@ function clearHistory() {
       })
     }
 
-    // solo 3 recientes
-    chatHistory.value = chatHistory.value.slice(0, 3)
+    recentSessionChats.value = recentSessionChats.value.slice(0, 3)
   }
 
   activeChatId.value = null
@@ -600,6 +883,7 @@ function clearHistory() {
   ]
 
   input.value = ''
+  delete inputDraftByContext.value[PENDING_DRAFT_KEY]
 
   steps.value.forEach(s => s.status = 'pending')
 
@@ -650,18 +934,103 @@ function getChatTitle(messages) {
     : 'Nuevo chat'
 }
 
-function loadChat(chat) {
-  activeChatId.value = chat.id
-  history.value = [...chat.messages]
+/** Último mensaje del usuario en el hilo (para la tarjeta «Estabas en…») */
+function getLastUserMessagePreview(messages, maxLen = 80) {
+  if (!Array.isArray(messages)) return ''
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i]
+    if (m?.role === 'user' && m?.text != null) {
+      const t = String(m.text).trim()
+      if (!t) continue
+      return t.length > maxLen ? `${t.slice(0, maxLen)}…` : t
+    }
+  }
+  return ''
+}
+
+/** Texto tras «Estabas en:»: último mensaje enviado o borrador en el input */
+function buildPreviousConversationLabel(messages, inputDraft = '') {
+  const lastUser = getLastUserMessagePreview(messages, 80)
+  if (lastUser) return lastUser
+  const draft = String(inputDraft || '').trim()
+  if (draft) return draft.length > 80 ? `${draft.slice(0, 80)}…` : draft
+  return getChatTitle(messages)
+}
+
+function chatCardTitle(chat) {
+  if (!chat) return 'Chat'
+  const t = chat.title ?? chat.name ?? chat.subject
+  if (t != null && String(t).trim()) return String(t).trim()
+  const msgs = chat.messages
+  if (Array.isArray(msgs) && msgs.length) return getChatTitle(msgs)
+  const rid = resolveChatRowId(chat)
+  return rid != null ? `Chat ${rid}` : 'Chat'
+}
+
+function chatCardTime(chat) {
+  if (!chat) return '--:--'
+  const d = chat.updatedAt ?? chat.updated_at ?? chat.createdAt ?? chat.created_at ?? chat.date ?? chat.timestamp
+  if (!d) return '--:--'
+  try {
+    return new Date(d).toLocaleString()
+  } catch {
+    return '--:--'
+  }
+}
+
+function chatCardKey(chat) {
+  if (!chat || typeof chat !== 'object') return 'row'
+  return resolveChatRowId(chat) ?? chat.uuid ?? String(chatCardTitle(chat))
+}
+
+function chatRowClass(chat) {
+  const rid = resolveChatRowId(chat)
+  const active = activeChatId.value != null && rid != null && String(rid) === String(activeChatId.value)
+  return active
+    ? 'bg-agent-500/15 border-agent-500/40 text-agent-text'
+    : 'bg-agent-surface-elevated border-agent-border hover:border-agent-500/30 text-agent-text'
+}
+
+function loadChat(chat, opts = {}) {
+  if (!chat || typeof chat !== 'object') return
+  const resolvedId = chat.id ?? chat.conversation_id ?? chat.chat_id
+  if (resolvedId == null) return
+  if (String(resolvedId) === String(activeChatId.value)) return
+
+  if (!opts.skipRememberPrevious) {
+    rememberPreviousChatContext()
+  }
+
+  persistCurrentChat()
+
+  const prevKey = contextDraftKey(activeChatId.value)
+  inputDraftByContext.value[prevKey] = input.value
+
+  activeChatId.value = resolvedId
+  history.value = normalizeLoadedMessages(chat)
+
+  input.value = inputDraftByContext.value[contextDraftKey(resolvedId)] ?? ''
+
+  nextTick(() => {
+    messageInputRef.value?.focus()
+    scrollToBottom(false)
+  })
 }
 
 function persistCurrentChat() {
   if (!activeChatId.value || history.value.length <= 1) return
 
-  const chat = chatHistory.value.find(c => c.id === activeChatId.value)
-  if (chat) {
-    chat.messages = [...history.value]
-    chat.updatedAt = new Date()
+  const id = activeChatId.value
+  const local = recentSessionChats.value.find((c) => String(resolveChatRowId(c)) === String(id))
+  if (local) {
+    local.messages = [...history.value]
+    local.updatedAt = new Date()
+    return
+  }
+  const remote = remoteChatHistory.value.find((c) => String(resolveChatRowId(c)) === String(id))
+  if (remote) {
+    remote.messages = [...history.value]
+    remote.updatedAt = new Date()
   }
 }
 
